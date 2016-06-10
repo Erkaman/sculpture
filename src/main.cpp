@@ -140,6 +140,18 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset){
     cameraR += yoffset;
 }
 
+void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods){
+    switch(key){
+        case GLFW_KEY_ESCAPE:
+            /* Exit program on Escape */
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
+            break;
+    }
+}
+
+
+
+
 void InitGlfw() {
     if (!glfwInit())
         exit(EXIT_FAILURE);
@@ -157,6 +169,7 @@ void InitGlfw() {
     }
 
     glfwSetScrollCallback(window, ScrollCallback);
+    glfwSetKeyCallback(window, KeyCallback);
 
 
     glfwMakeContextCurrent(window);
