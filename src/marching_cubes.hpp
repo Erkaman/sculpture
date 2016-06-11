@@ -25,14 +25,18 @@ struct pair_hash {
     }
 };
 
-
+inline int XyzToId(int* C, int resolution) {
+    return
+	(C[0])*resolution*resolution +
+	(C[1])*resolution            +
+	(C[2]);
+}
 
 inline int XyzToId(int* C, int i, int resolution) {
     return
 	(C[0] + cubeVerticesTable[i][0])*resolution*resolution +
 	(C[1] + cubeVerticesTable[i][1])*resolution            +
 	(C[2] + cubeVerticesTable[i][2]);
-
 }
 
 
@@ -71,24 +75,78 @@ Mesh MarchingCubes(
 
 
     float* densityValues = new float[resolution*resolution*resolution];
+    glm::vec3* normals = new glm::vec3[resolution*resolution*resolution];
 
     std::unordered_map<std::pair<int,int>, int ,pair_hash> edgeIndicesCache;
 
     // Represents (x,y,z)
     int C[3];
+    int A[3];
+    int B[3];
 
     // precompute all the density values for the entire grid:
     for(C[0] = 0; C[0] < (resolution); ++C[0])
 	for(C[1] = 0; C[1] < (resolution); ++C[1])
 	    for(C[2] = 0; C[2] < (resolution); ++C[2]) {
 
-		densityValues[C[2]+C[1]*resolution+C[0]*resolution*resolution] = density.eval(
+		densityValues[
+		    XyzToId(C, resolution)] = density.eval(
 		    bounds[0][0] + (C[0]) * cellSizes[0],
 		    bounds[0][1] + (C[1]) * cellSizes[1],
 		    bounds[0][2] + (C[2]) * cellSizes[2]
 		    );
 
 	    }
+
+
+    int offsetTable[3][3] =
+	{
+	    {1,0,0},
+	    {0,1,0},
+	    {0,0,1},
+	};
+
+
+    for(C[0] = 0; C[0] < (resolution); ++C[0])
+	for(C[1] = 0; C[1] < (resolution); ++C[1])
+	    for(C[2] = 0; C[2] < (resolution); ++C[2]) {
+
+//		float gx = densityValues[  XyzToId(  ) ]
+		for(int j = 0; j < 3; ++j) {
+
+		    int* offsets = offsetTable[j];
+
+		    A[0] = C[0] + offsets[0];
+		    A[1] = C[1] + offsets[1];
+		    A[2] = C[2] + offsets[2];
+
+		    B[0] = C[0] - offsets[0];
+		    B[1] = C[1] - offsets[1];
+		    B[2] = C[2] - offsets[2];
+
+		    float g = 0.5f * (densityValues[XyzToId(A, resolution)] - densityValues[XyzToId(B, resolution)]);
+
+		    //	    printf(": %f\n", g);
+
+
+
+		    normals[XyzToId(C, resolution)][j] = g;
+
+		}
+
+
+
+		normals[XyzToId(C, resolution)] = glm::normalize(normals[XyzToId(C, resolution)]);
+
+		glm::vec3 n0 = normals[XyzToId(C, resolution)];
+
+		//	printf("n0: %f, %f, %f\n",  n0[0], n0[1], n0[2]);
+
+
+
+	    }
+
+
 
 
     // we iterate through all the cells, and create geometry for them, one by one.
@@ -165,11 +223,18 @@ Mesh MarchingCubes(
 			    p[j] = (e1-e0)*t + e0;
 			}
 
+			glm::vec3 n0 = normals[i0];
+			glm::vec3 n1 = normals[i1];
+
+			//printf("n0: %f, %f, %f\n",  n0[0], n0[1], n0[2]);
+
+			glm::vec3 n = glm::normalize((n1-n0)*t + n0);
 
 
 			// now add the interpolated vertex.
 			edgeIndices[i] = index++;
 			mesh.vertices.push_back( glm::vec3(p[0], p[1], p[2])  );
+			mesh.normals.push_back( n  );
 
 			edgeIndicesCache[pair] = edgeIndices[i];
 
@@ -199,6 +264,9 @@ Mesh MarchingCubes(
 
 
     printf("vertices: %ld\n", mesh.vertices.size() );
+
+    printf("normals: %ld\n", mesh.normals.size() );
+
 /*
   for(const glm::vec3& p : mesh.vertices ) {
   printf("p: %f, %f, %f\n", p.x, p.y, p.z );

@@ -58,7 +58,7 @@ const char* fragment_shader_text =
     "{\n"
     "    vec3 diff = vec3(dot(vNormal, normalize(vec3(0.2,0.3,0.6)) ) ); \n"
 
-    "    color = vec4(abs(vPos), 1.0); \n"
+    "    color = vec4(diff, 1.0); \n"
     "}\n";
 
 /*
@@ -154,6 +154,8 @@ struct Density {
 	    float t= 0.5 + 0.5*sin( i * 0.8f );
 
 	    float r = 0.3 + (0.9 - 0.3) * t;
+	    r = 0.6;
+
 
 	    v = Union(v, Capsule(x,y,z, points[i-1] , points[i-0],
 
@@ -163,7 +165,9 @@ struct Density {
 			  ));
 
 
-			  }
+	}
+
+
 
 
 
@@ -189,12 +193,14 @@ void init_map(void)
     Density d;
 
     mesh = MarchingCubes(d,
-		  50,
+		  100,
 		  -10, +10,
 		  -10, +10,
 		  -10, +10
 	);
 
+
+    /*
     for(size_t i = 0; i < mesh.vertices.size(); ++i) {
 	mesh.normals.push_back( glm::vec3(0.0f, 0.0f, 0.0f) );
     }
@@ -221,6 +227,7 @@ void init_map(void)
 	mesh.normals[i] = glm::normalize(mesh.normals[i]);
     }
 
+    */
 
 }
 
