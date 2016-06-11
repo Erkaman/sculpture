@@ -75,6 +75,8 @@ Mesh MarchingCubes(
 
 
     float* densityValues = new float[resolution*resolution*resolution];
+    float* smoothedDensityValues = new float[resolution*resolution*resolution];
+
     glm::vec3* normals = new glm::vec3[resolution*resolution*resolution];
 
     std::unordered_map<std::pair<int,int>, int ,pair_hash> edgeIndicesCache;
@@ -99,19 +101,53 @@ Mesh MarchingCubes(
 	    }
 
 
+
     int offsetTable[3][3] =
 	{
 	    {1,0,0},
 	    {0,1,0},
 	    {0,0,1},
 	};
+/*
+    for(C[0] = 2; C[0] < (resolution-2); ++C[0])
+	for(C[1] = 2; C[1] < (resolution-2); ++C[1])
+	    for(C[2] = 2; C[2] < (resolution-2); ++C[2]) {
+
+		float sum = 0;
+
+		for(int i = -2; i <= +2; ++i) {
 
 
-    for(C[0] = 0; C[0] < (resolution); ++C[0])
-	for(C[1] = 0; C[1] < (resolution); ++C[1])
-	    for(C[2] = 0; C[2] < (resolution); ++C[2]) {
+		    for(int j = -2; j <= +2; ++j) {
 
-//		float gx = densityValues[  XyzToId(  ) ]
+
+			for(int k = -2; k <= +2; ++k) {
+
+			    A[0] = C[0] + i;
+			    A[1] = C[1] + j;
+			    A[2] = C[2] + k;
+
+			    sum += densityValues[XyzToId(A, resolution)];
+			}
+
+		    }
+
+		}
+
+		smoothedDensityValues[XyzToId(C, resolution)] = sum / 125.0f;
+
+
+	    }
+*/
+
+    //  int F[3];
+
+    for(C[0] = 1; C[0] < (resolution-1); ++C[0])
+	for(C[1] = 1; C[1] < (resolution-1); ++C[1])
+	    for(C[2] = 1; C[2] < (resolution-1); ++C[2]) {
+
+
+
 		for(int j = 0; j < 3; ++j) {
 
 		    int* offsets = offsetTable[j];
@@ -124,15 +160,18 @@ Mesh MarchingCubes(
 		    B[1] = C[1] - offsets[1];
 		    B[2] = C[2] - offsets[2];
 
-		    float g = 0.5f * (densityValues[XyzToId(A, resolution)] - densityValues[XyzToId(B, resolution)]);
+		    float a = densityValues[XyzToId(A, resolution)];
+
+		    float b = densityValues[XyzToId(B, resolution)];
+
+		    float g = 0.5f * (a - b);
 
 		    //	    printf(": %f\n", g);
-
-
 
 		    normals[XyzToId(C, resolution)][j] = g;
 
 		}
+
 
 
 

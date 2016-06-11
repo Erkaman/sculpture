@@ -75,6 +75,7 @@ const char* fragment_shader_text =
 
 
     "    vec3 diff = ambient + diffuse + specular; \n"
+//    "    diff = vec3(dot(n,l)); \n"
 
     "    color = vec4(diff, 1.0); \n"
     "}\n";
@@ -213,7 +214,7 @@ void init_map(void)
     Density d;
 
     mesh = MarchingCubes(d,
-			 50,
+			 100,
 			 -10, +10,
 			 -10,  +10,
 			 -10, +10
