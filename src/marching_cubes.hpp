@@ -27,11 +27,11 @@ struct pair_hash {
 
 
 
-inline int XyzToId(int x, int y, int z, int i, int resolution) {
+inline int XyzToId(int* C, int i, int resolution) {
     return
-	(x + cubeVerticesTable[i][0])*resolution*resolution +
-	(y + cubeVerticesTable[i][1])*resolution            +
-	(z + cubeVerticesTable[i][2]);
+	(C[0] + cubeVerticesTable[i][0])*resolution*resolution +
+	(C[1] + cubeVerticesTable[i][1])*resolution            +
+	(C[2] + cubeVerticesTable[i][2]);
 
 }
 
@@ -74,35 +74,34 @@ Mesh MarchingCubes(
 
     std::unordered_map<std::pair<int,int>, int ,pair_hash> edgeIndicesCache;
 
+    // Represents (x,y,z)
+    int C[3];
 
     // precompute all the density values for the entire grid:
-    for(int x = 0; x < (resolution); ++x)
-	for(int y = 0; y < (resolution); ++y)
-	    for(int z = 0; z < (resolution); ++z) {
+    for(C[0] = 0; C[0] < (resolution); ++C[0])
+	for(C[1] = 0; C[1] < (resolution); ++C[1])
+	    for(C[2] = 0; C[2] < (resolution); ++C[2]) {
 
-		densityValues[z+y*resolution+x*resolution*resolution] = density.eval(
-
-
-
-		    bounds[0][0] + (x) * cellSizes[0],
-		    bounds[0][1] + (y) * cellSizes[1],
-		    bounds[0][2] + (z) * cellSizes[2]
+		densityValues[C[2]+C[1]*resolution+C[0]*resolution*resolution] = density.eval(
+		    bounds[0][0] + (C[0]) * cellSizes[0],
+		    bounds[0][1] + (C[1]) * cellSizes[1],
+		    bounds[0][2] + (C[2]) * cellSizes[2]
 		    );
 
 	    }
 
 
     // we iterate through all the cells, and create geometry for them, one by one.
-    for(int x = 0; x < (resolution-1); ++x)
-	for(int y = 0; y < (resolution-1); ++y)
-	    for(int z = 0; z < (resolution-1); ++z) {
+    for(C[0] = 0; C[0] < (resolution-1); ++C[0])
+	for(C[1] = 0; C[1] < (resolution-1); ++C[1])
+	    for(C[2] = 0; C[2] < (resolution-1); ++C[2]) {
 
 		int cellIndex = 0;
 
 		// compute the values at the cell vertices, and create the cell index.
 		for(int i = 0; i < 8; ++i) {
 
-		    gridCellValues[i] = densityValues[XyzToId(x, y, z, i, resolution)];
+		    gridCellValues[i] = densityValues[XyzToId(C, i, resolution)];
 
 		    if( gridCellValues[i] > 0 ) {
 			cellIndex |= ( 1 << i );
@@ -134,8 +133,8 @@ Mesh MarchingCubes(
 		      By doing this, the vertexcount of the created geometry is
 		      MUCH lowered.
 		     */
-		    int i0 = XyzToId(x, y, z, e[0], resolution);
-		    int i1 = XyzToId(x, y, z, e[1], resolution);
+		    int i0 = XyzToId(C, e[0], resolution);
+		    int i1 = XyzToId(C, e[1], resolution);
 		    std::pair<int,int> pair = sort(i0, i1);
 		    auto value = edgeIndicesCache.find(pair);
 
@@ -156,31 +155,21 @@ Mesh MarchingCubes(
 			    t =v0 / d;
 			}
 
-			glm::vec3 p;
+			float p[3];
 
 			// to compute the vertex, we interpolate between the vertices at the edge-point.
 
-			int j = 0;
-			float e0 = bounds[0][j] + (x + cubeVerticesTable[ e[0]  ][j]) * cellSizes[j];
-			float e1 = bounds[0][j] + (x + cubeVerticesTable[ e[1]  ][j]) * cellSizes[j];
-			p.x = (e1-e0)*t + e0;
+			for(int j = 0; j < 3; ++j) {
+			    float e0 = bounds[0][j] + (C[j] + cubeVerticesTable[ e[0]  ][j]) * cellSizes[j];
+			    float e1 = bounds[0][j] + (C[j] + cubeVerticesTable[ e[1]  ][j]) * cellSizes[j];
+			    p[j] = (e1-e0)*t + e0;
+			}
 
-			++j;
-
-			e0 = bounds[0][j] + (y + cubeVerticesTable[ e[0]  ][j]) * cellSizes[j];
-			e1 = bounds[0][j] + (y + cubeVerticesTable[ e[1]  ][j]) * cellSizes[j];
-			p.y = (e1-e0)*t + e0;
-
-			++j;
-
-			e0 = bounds[0][j] + (z + cubeVerticesTable[ e[0]  ][j]) * cellSizes[j];
-			e1 = bounds[0][j] + (z + cubeVerticesTable[ e[1]  ][j]) * cellSizes[j];
-			p.z = (e1-e0)*t + e0;
 
 
 			// now add the interpolated vertex.
 			edgeIndices[i] = index++;
-			mesh.vertices.push_back( p  );
+			mesh.vertices.push_back( glm::vec3(p[0], p[1], p[2])  );
 
 			edgeIndicesCache[pair] = edgeIndices[i];
 

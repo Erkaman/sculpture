@@ -31,16 +31,20 @@ GLuint vao;
 const char* vertex_shader_text =
     "#version 330\n"
     "layout(location = 0) in vec3 aPos;"
+    "layout(location = 1) in vec3 aNormal;"
 
     "uniform mat4 uProject;\n"
     "uniform mat4 uView;\n"
 
     "out vec3 vPos;"
+    "out vec3 vNormal;"
 
     "\n"
     "void main()\n"
     "{\n"
     "   vPos = aPos; "
+    "   vNormal = aNormal; "
+
     "   gl_Position = uProject * uView * vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
     "}\n";
 
@@ -48,9 +52,12 @@ const char* fragment_shader_text =
     "#version 330\n"
     "out vec4 color;\n"
     "in vec3 vPos;"
+    "in vec3 vNormal;"
 
     "void main()\n"
     "{\n"
+    "    vec3 diff = vec3(dot(vNormal, normalize(vec3(0.2,0.3,0.6)) ) ); \n"
+
     "    color = vec4(abs(vPos), 1.0); \n"
     "}\n";
 
@@ -121,7 +128,7 @@ float Union(float v1, float v2) {
 vector<glm::vec3> points;
 
 void InitSculpt() {
-    for(float s = 0; s < 12.0f; s +=0.5f) {
+    for(float s = 0; s < 16.0f; s +=0.5f) {
 
 	vec3 p(
 	    cos(s / sqrt(2) ),
@@ -142,11 +149,22 @@ struct Density {
 //	v = x*x + y*y + z*z - 1;
 
 
-
 	for(int i = 1; i < points.size(); ++i) {
-	    	v = Union(v, Capsule(x,y,z, points[i-1] , points[i-0], 0.6));
 
-		}
+	    float t= 0.5 + 0.5*sin( i * 0.8f );
+
+	    float r = 0.3 + (0.9 - 0.3) * t;
+
+	    v = Union(v, Capsule(x,y,z, points[i-1] , points[i-0],
+
+				 r
+
+
+			  ));
+
+
+			  }
+
 
 
 
@@ -177,25 +195,32 @@ void init_map(void)
 		  -10, +10
 	);
 
-    /*
-    mesh = MarchingCubes(d,
-		  3,
-		  -2, +2,
-		  -2, +2,
-		  -2, +2
-	);
-    */
+    for(size_t i = 0; i < mesh.vertices.size(); ++i) {
+	mesh.normals.push_back( glm::vec3(0.0f, 0.0f, 0.0f) );
+    }
+
+    // sum all adjacent face normals for the vertices.
+    for(size_t i = 0; i < mesh.indices.size(); i+=3) {
+	vec3 p0 = mesh.vertices[mesh.indices[i+0]];
+	vec3 p1 = mesh.vertices[mesh.indices[i+1]];
+	vec3 p2 = mesh.vertices[mesh.indices[i+2]];
+
+	vec3 u = p2 - p0;
+	vec3 v = p1 - p0;
+
+	vec3 fn = glm::normalize(glm::cross(u,v));
 
 
-    /*
-    mesh.vertices.push_back(glm::vec3(1,0,0));
-    mesh.vertices.push_back(glm::vec3(1,0,1));
-    mesh.vertices.push_back(glm::vec3(0,0,0));
+	mesh.normals[mesh.indices[i+0]] += fn;
+	mesh.normals[mesh.indices[i+1]] += fn;
+	mesh.normals[mesh.indices[i+2]] += fn;
 
-    mesh.indices.push_back(2);
-    mesh.indices.push_back(1);
-    mesh.indices.push_back(0);
-    */
+    }
+
+    for(size_t i = 0; i < mesh.vertices.size(); ++i) {
+	mesh.normals[i] = glm::normalize(mesh.normals[i]);
+    }
+
 
 }
 
@@ -208,20 +233,35 @@ void init_map(void)
  */
 void make_mesh(){
     GL_C(glGenBuffers(1, &mesh.indexVbo));
-    /* Prepare the data for drawing through a buffer inidices */
     GL_C(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.indexVbo));
-    GL_C(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)* mesh.indices.size()
-		      , mesh.indices.data(), GL_STATIC_DRAW));
+    GL_C(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)* mesh.indices.size(), mesh.indices.data(), GL_STATIC_DRAW));
+
+
+    // create
 
     GL_C(glGenBuffers(1, &mesh.vertexVbo));
     GL_C(glBindBuffer(GL_ARRAY_BUFFER, mesh.vertexVbo));
-    GL_C(glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*3*mesh.vertices.size(),
+    GL_C(glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*3*mesh.vertices.size(), mesh.vertices.data() , GL_STATIC_DRAW));
 
-		      mesh.vertices.data() , GL_STATIC_DRAW));
+    GL_C(glGenBuffers(1, &mesh.normalVbo));
+    GL_C(glBindBuffer(GL_ARRAY_BUFFER, mesh.normalVbo));
+    GL_C(glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*3*mesh.normals.size(), mesh.normals.data() , GL_STATIC_DRAW));
 
 
+
+
+
+    // enable
     GL_C(glEnableVertexAttribArray(0));
+    GL_C(glBindBuffer(GL_ARRAY_BUFFER, mesh.vertexVbo));
     GL_C(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
+
+    GL_C(glEnableVertexAttribArray(1));
+    GL_C(glBindBuffer(GL_ARRAY_BUFFER, mesh.normalVbo));
+    GL_C(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
+
+
+
 }
 /**********************************************************************
  * GLFW callback functions
@@ -316,6 +356,9 @@ int main(int argc, char** argv)
 
 
     while (!glfwWindowShouldClose(window)) {
+
+//	GL_C(glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ));
+
 
 	int fbWidth, fbHeight;
 	glfwGetFramebufferSize(window, &fbWidth, &fbHeight);

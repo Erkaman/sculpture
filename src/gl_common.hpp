@@ -32,10 +32,12 @@ void CheckOpenGLError(const char* stmt, const char* fname, int line)
 struct Mesh {
 
     std::vector<glm::vec3> vertices;
-    std::vector<uint> indices;
+    std::vector<glm::vec3> normals;
+    std::vector<GLuint> indices;
 
     GLuint indexVbo;
     GLuint vertexVbo;
+    GLuint normalVbo;
 
 
 };
