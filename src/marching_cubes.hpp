@@ -133,6 +133,12 @@ Mesh MarchingCubes(
 
 
     printf("vertices: %ld\n", mesh.vertices.size() );
+/*
+    for(const glm::vec3& p : mesh.vertices ) {
+	printf("p: %f, %f, %f\n", p.x, p.y, p.z );
+    }
+    */
+
     printf("indices: %ld\n", mesh.indices.size() );
 
 

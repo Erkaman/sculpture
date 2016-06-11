@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -12,6 +13,10 @@
 
 #include "marching_cubes.hpp"
 
+
+using std::vector;
+
+using glm::vec3;
 
 #ifndef M_PI
 #define M_PI 3.14159
@@ -88,17 +93,75 @@ void updateViewMatrix() {
 
 }
 
+float Capsule(float x_, float y_, float z_, glm::vec3 p0, glm::vec3 p1, float r) {
+
+    // Source of the below formula:
+    // see equation (4.40) of http://image.diku.dk/projects/media/kelager.06.pdf
+
+    glm::vec3 x(x_,y_,z_);
+
+    float t = - glm::dot(p0 - x, p1 - p0) / glm::dot(p1 - p0, p1 - p0);
+    t = std::min(1.0f, std::max(0.0f,t));
+
+    glm::vec3 q = p0 + t * (p1-p0);
+
+    return glm::length(q - x) - r;
+}
+
+float Torus(float x, float y, float z, float R, float r) {
+
+    return (R - sqrt(x*x + y*y) )*(R - sqrt(x*x + y*y) ) + z*z - r*r;
+
+}
+
+float Union(float v1, float v2) {
+    return std::min(v1,v2);
+}
+
+vector<glm::vec3> points;
+
+void InitSculpt() {
+    for(float s = 0; s < 12.0f; s +=0.5f) {
+
+	vec3 p(
+	    cos(s / sqrt(2) ),
+	    sin(s / sqrt(2) ),
+	    s / sqrt(2)
+	    );
+	points.push_back(p);
+
+    }
+}
 
 struct Density {
 
     float eval(float x, float y, float z) const{
-/*
-	if(x < -9 && y < -9 && z > 9)
-	    return -1;
-	else
-	    return 1.0;
-*/
-    return x*x + y*y + z*z - 1;
+
+	float v = FLT_MAX;
+
+//	v = x*x + y*y + z*z - 1;
+
+
+
+	for(int i = 1; i < points.size(); ++i) {
+	    	v = Union(v, Capsule(x,y,z, points[i-1] , points[i-0], 0.6));
+
+		}
+
+
+
+	/*
+	v = Union(v, Capsule(x,y,z, glm::vec3(0,-5,0), glm::vec3(0,3,0), 0.3));
+	v = Union(v, Capsule(x,y,z, glm::vec3(-3,3,0), glm::vec3(3,3,0), 1.0) );
+	v = Union(v, Capsule(x,y,z, glm::vec3(-3,-5,-3), glm::vec3(3,-5,3), 1.0) );
+	*/
+
+	return v;
+
+
+
+//	return torus(x,y,z, 3, 1);
+
     }
 };
 
@@ -109,9 +172,9 @@ void init_map(void)
     Density d;
     mesh = MarchingCubes(d,
 		  50,
-		  -2, +2,
-		  -2, +2,
-		  -2, +2
+		  -10, +10,
+		  -10, +10,
+		  -10, +10
 
 	);
 
@@ -210,6 +273,9 @@ void InitGlfw() {
 int main(int argc, char** argv)
 {
 
+    InitSculpt();
+
+
 
     InitGlfw();
 
@@ -235,6 +301,7 @@ int main(int argc, char** argv)
 
 
 	GL_C(glEnable(GL_CULL_FACE));
+	GL_C(glEnable(GL_DEPTH_TEST));
 
 	glFlush();
 	glFinish();
