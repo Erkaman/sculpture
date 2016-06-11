@@ -1,5 +1,9 @@
 #pragma once
 
+#include <vector>
+
+typedef unsigned int uint;
+
 #define _DEBUG
 
 void CheckOpenGLError(const char* stmt, const char* fname, int line)
@@ -24,3 +28,14 @@ void CheckOpenGLError(const char* stmt, const char* fname, int line)
 #else
     #define GL_C(stmt) stmt
 #endif
+
+struct Mesh {
+
+    std::vector<glm::vec3> vertices;
+    std::vector<uint> indices;
+
+    GLuint indexVbo;
+    GLuint vertexVbo;
+
+
+};

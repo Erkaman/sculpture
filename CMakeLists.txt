@@ -42,7 +42,10 @@ add_executable(sculpture
   src/main.cpp
   src/gl_common.hpp
   src/shader.hpp
-	deps/glfw-3.2/deps/glad.c
+  src/marching_cubes.hpp
+  src/marching_cubes_tables.hpp
+
+  deps/glfw-3.2/deps/glad.c
 	)
 
 target_link_libraries(sculpture

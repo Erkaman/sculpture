@@ -10,6 +10,8 @@
 #include "shader.hpp"
 #include "gl_common.hpp"
 
+#include "marching_cubes.hpp"
+
 
 #ifndef M_PI
 #define M_PI 3.14159
@@ -19,31 +21,42 @@
  * Default shader programs
  *********************************************************************/
 
-static const char* vertex_shader_text =
+GLuint vao;
+
+const char* vertex_shader_text =
     "#version 330\n"
-    "uniform mat4 project;\n"
-    "uniform mat4 view;\n"
-    "layout(location = 0) in vec3 pos;"
+    "layout(location = 0) in vec3 aPos;"
+
+    "uniform mat4 uProject;\n"
+    "uniform mat4 uView;\n"
+
+    "out vec3 vPos;"
+
     "\n"
     "void main()\n"
     "{\n"
-    "float s = 10.0;"
-    "   gl_Position = project * view * vec4(pos.x*s, pos.y*s, pos.z*s, 1.0);\n"
+    "   vPos = aPos; "
+    "   gl_Position = uProject * uView * vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
     "}\n";
 
-static const char* fragment_shader_text =
+const char* fragment_shader_text =
     "#version 330\n"
     "out vec4 color;\n"
+    "in vec3 vPos;"
+
     "void main()\n"
     "{\n"
-    "    color = vec4(0.2, 1.0, 0.2, 1.0); \n"
+    "    color = vec4(abs(vPos), 1.0); \n"
     "}\n";
 
-GLfloat my_map_vertices[3 * 2];
-GLuint  map_line_indices[3];
+/*
+std::vector<glm::vec3> my_map_vertices;
+std::vector<GLuint> map_line_indices;
+*/
 
-GLuint mesh_vbo;
-GLuint vertexBuffer;
+
+
+Mesh mesh;
 
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
@@ -52,7 +65,7 @@ GLFWwindow* window;
 
 float cameraTheta = 0.8f;
 float cameraPhi = 0.8 * M_PI/2.0f;
-float cameraR = 30.0;
+float cameraR = 3.0;
 
 
 glm::mat4 viewMatrix;
@@ -75,32 +88,44 @@ void updateViewMatrix() {
 
 }
 
-static void init_map(void)
+
+struct Density {
+
+    float eval(float x, float y, float z) const{
+/*
+	if(x < -9 && y < -9 && z > 9)
+	    return -1;
+	else
+	    return 1.0;
+*/
+    return x*x + y*y + z*z - 1;
+    }
+};
+
+
+void init_map(void)
 {
-    int k;
 
-    GLfloat x = 1.0f;
-    GLfloat z = 0.0f;
+    Density d;
+    mesh = MarchingCubes(d,
+		  50,
+		  -2, +2,
+		  -2, +2,
+		  -2, +2
 
-
-    k = 0;
-    my_map_vertices[k++] = 1.0;
-    my_map_vertices[k++] = 0;
-    my_map_vertices[k++] = 0.0;
-
-    my_map_vertices[k++] = 1.0;
-    my_map_vertices[k++] = 0;
-    my_map_vertices[k++] = 1.0;
-
-    my_map_vertices[k++] = 0;
-    my_map_vertices[k++] = 0;
-    my_map_vertices[k++] = 0;
+	);
 
 
-    k = 0;
-    map_line_indices[k++] = 2;
-    map_line_indices[k++] = 1;
-    map_line_indices[k++] = 0;
+    /*
+    mesh.vertices.push_back(glm::vec3(1,0,0));
+    mesh.vertices.push_back(glm::vec3(1,0,1));
+    mesh.vertices.push_back(glm::vec3(0,0,0));
+
+    mesh.indices.push_back(2);
+    mesh.indices.push_back(1);
+    mesh.indices.push_back(0);
+    */
+
 }
 
 /**********************************************************************
@@ -110,27 +135,22 @@ static void init_map(void)
 /* Create VBO, IBO and VAO objects for the heightmap geometry and bind them to
  * the specified program object
  */
-static void make_mesh()
-{
-    GLuint attrloc;
-
-
-    GL_C(glGenBuffers(1, &mesh_vbo));
+void make_mesh(){
+    GL_C(glGenBuffers(1, &mesh.indexVbo));
     /* Prepare the data for drawing through a buffer inidices */
-    GL_C(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh_vbo));
-    GL_C(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)* 3, map_line_indices, GL_STATIC_DRAW));
+    GL_C(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.indexVbo));
+    GL_C(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)* mesh.indices.size()
+		      , mesh.indices.data(), GL_STATIC_DRAW));
 
+    GL_C(glGenBuffers(1, &mesh.vertexVbo));
+    GL_C(glBindBuffer(GL_ARRAY_BUFFER, mesh.vertexVbo));
+    GL_C(glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*3*mesh.vertices.size(),
 
-    GL_C(glGenBuffers(1, &vertexBuffer));
-    GL_C(glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer));
-    GL_C(glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*3*3, my_map_vertices , GL_STATIC_DRAW));
+		      mesh.vertices.data() , GL_STATIC_DRAW));
 
 
     GL_C(glEnableVertexAttribArray(0));
     GL_C(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
-
-
-
 }
 /**********************************************************************
  * GLFW callback functions
@@ -148,7 +168,6 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             break;
     }
 }
-
 
 
 
@@ -171,40 +190,39 @@ void InitGlfw() {
     glfwSetScrollCallback(window, ScrollCallback);
     glfwSetKeyCallback(window, KeyCallback);
 
-
     glfwMakeContextCurrent(window);
 
     // load GLAD.
     gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
 
     // Bind and create VAO, otherwise, we can't do anything in OpenGL.
-    static GLuint vao;
+
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
+
 }
+
+
+
+
 
 int main(int argc, char** argv)
 {
+
+
     InitGlfw();
 
     Shader shader(vertex_shader_text, fragment_shader_text);
 
     // projection matrix.
-    glm::mat4 projectionMatrix = glm::perspective(0.9f, (float)WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.0f);
-
+    glm::mat4 projectionMatrix = glm::perspective(0.9f, (float)WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 1000.0f);
 
 
     /* Create mesh data */
     init_map();
     make_mesh();
 
-    int fbWidth, fbHeight;
-    glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
-    GL_C(glViewport(0, 0, fbWidth, fbHeight));
-    GL_C(glEnable(GL_CULL_FACE));
-
-    GL_C(glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
 
 
     double prevMouseX = 0;
@@ -214,23 +232,33 @@ int main(int argc, char** argv)
     double curMouseY = 0;
 
 
+
+
+	GL_C(glEnable(GL_CULL_FACE));
+
+	glFlush();
+	glFinish();
+
+
     while (!glfwWindowShouldClose(window)) {
 
-        glClear(GL_COLOR_BUFFER_BIT);
-
+	int fbWidth, fbHeight;
+	glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
+	GL_C(glViewport(0, 0, fbWidth, fbHeight));
+	GL_C(glClearColor(0.0f, 0.0f, 1.0f, 0.0f));
+        GL_C(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
 	shader.Bind();
 
 
 	updateViewMatrix();
 
-	shader.SetUniform("project", projectionMatrix );
-	shader.SetUniform("view",viewMatrix );
+	shader.SetUniform("uProject", projectionMatrix );
+	shader.SetUniform("uView",viewMatrix );
 
 
 
-	GL_C(glDrawElements(GL_TRIANGLES, 3 , GL_UNSIGNED_INT, 0));
-
+	GL_C(glDrawElements(GL_TRIANGLES, mesh.indices.size() , GL_UNSIGNED_INT, 0));
 
 
 	prevMouseX = curMouseX;
