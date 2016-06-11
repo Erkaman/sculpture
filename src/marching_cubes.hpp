@@ -4,6 +4,36 @@
 
 #include <glm/glm.hpp>
 #include <vector>
+#include <unordered_map>
+#include <functional>
+
+
+inline std::pair<int,int> sort(int x, int y) {
+    return x <= y ? std::pair<int,int>(x,y) : std::pair<int,int>(y,x);
+}
+
+
+
+struct pair_hash {
+    std::size_t operator () (const std::pair<int,int>& p) const {
+        int h1 = p.first;
+        int h2 = p.second;
+
+        // Mainly for demonstration purposes, i.e. works but is overly simple
+        // In the real world, use sth. like boost.hash_combine
+        return h1 ^ h2;
+    }
+};
+
+
+
+inline int XyzToId(int x, int y, int z, int i, int resolution) {
+    return
+	(x + cubeVerticesTable[i][0])*resolution*resolution +
+	(y + cubeVerticesTable[i][1])*resolution            +
+	(z + cubeVerticesTable[i][2]);
+
+}
 
 
 template<typename F>
@@ -37,18 +67,27 @@ Mesh MarchingCubes(
     float gridCellValues[8];
     int edgeIndices[12];
 
+    GLuint index = 0;
+
 
     float* densityValues = new float[resolution*resolution*resolution];
 
+    std::unordered_map<std::pair<int,int>, int ,pair_hash> edgeIndicesCache;
+
+
+    // precompute all the density values for the entire grid:
     for(int x = 0; x < (resolution); ++x)
 	for(int y = 0; y < (resolution); ++y)
 	    for(int z = 0; z < (resolution); ++z) {
 
 		densityValues[z+y*resolution+x*resolution*resolution] = density.eval(
-			bounds[0][0] + (x) * cellSizes[0],
-			bounds[0][1] + (y) * cellSizes[1],
-			bounds[0][2] + (z) * cellSizes[2]
-			);
+
+
+
+		    bounds[0][0] + (x) * cellSizes[0],
+		    bounds[0][1] + (y) * cellSizes[1],
+		    bounds[0][2] + (z) * cellSizes[2]
+		    );
 
 	    }
 
@@ -63,13 +102,7 @@ Mesh MarchingCubes(
 		// compute the values at the cell vertices, and create the cell index.
 		for(int i = 0; i < 8; ++i) {
 
-		    gridCellValues[i] = densityValues[
-			(x + cubeVerticesTable[i][0])*resolution*resolution +
-			(y + cubeVerticesTable[i][1])*resolution            +
-			(z + cubeVerticesTable[i][2])
-			];
-
-
+		    gridCellValues[i] = densityValues[XyzToId(x, y, z, i, resolution)];
 
 		    if( gridCellValues[i] > 0 ) {
 			cellIndex |= ( 1 << i );
@@ -92,40 +125,68 @@ Mesh MarchingCubes(
 
 		    int* e = edges[i];
 
-		    // compute the lerp-factor t.
-		    float v0 = gridCellValues[e[0]];
-		    float v1 = gridCellValues[e[1]];
-		    float d = v0 - v1;
-		    float t = 0.0;
-		    if(fabs(d) > 0.00001) {
-			t =v0 / d;
+
+		    /*
+		      Only one interpolated vertex between every edge is necessary.
+		      Once we have interpolated and computed one such vertex,
+		      we save its index in the hashmap edgeIndicesCache.
+
+		      By doing this, the vertexcount of the created geometry is
+		      MUCH lowered.
+		     */
+		    int i0 = XyzToId(x, y, z, e[0], resolution);
+		    int i1 = XyzToId(x, y, z, e[1], resolution);
+		    std::pair<int,int> pair = sort(i0, i1);
+		    auto value = edgeIndicesCache.find(pair);
+
+		    if(value !=  edgeIndicesCache.end() ) {
+			// we have already computed the vertex between this edge.
+			// so reuse it.
+
+			edgeIndices[i] = value->second;
+
+		    } else {
+
+			// compute the lerp-factor t.
+			float v0 = gridCellValues[e[0]];
+			float v1 = gridCellValues[e[1]];
+			float d = v0 - v1;
+			float t = 0.0;
+			if(fabs(d) > 0.00001) {
+			    t =v0 / d;
+			}
+
+			glm::vec3 p;
+
+			// to compute the vertex, we interpolate between the vertices at the edge-point.
+
+			int j = 0;
+			float e0 = bounds[0][j] + (x + cubeVerticesTable[ e[0]  ][j]) * cellSizes[j];
+			float e1 = bounds[0][j] + (x + cubeVerticesTable[ e[1]  ][j]) * cellSizes[j];
+			p.x = (e1-e0)*t + e0;
+
+			++j;
+
+			e0 = bounds[0][j] + (y + cubeVerticesTable[ e[0]  ][j]) * cellSizes[j];
+			e1 = bounds[0][j] + (y + cubeVerticesTable[ e[1]  ][j]) * cellSizes[j];
+			p.y = (e1-e0)*t + e0;
+
+			++j;
+
+			e0 = bounds[0][j] + (z + cubeVerticesTable[ e[0]  ][j]) * cellSizes[j];
+			e1 = bounds[0][j] + (z + cubeVerticesTable[ e[1]  ][j]) * cellSizes[j];
+			p.z = (e1-e0)*t + e0;
+
+
+			// now add the interpolated vertex.
+			edgeIndices[i] = index++;
+			mesh.vertices.push_back( p  );
+
+			edgeIndicesCache[pair] = edgeIndices[i];
+
 		    }
 
-		    glm::vec3 p;
 
-		    // to compute the vertex, we interpolate between the vertices at the edge-point.
-
-		    int j = 0;
-		    float e0 = bounds[0][j] + (x + cubeVerticesTable[ e[0]  ][j]) * cellSizes[j];
-		    float e1 = bounds[0][j] + (x + cubeVerticesTable[ e[1]  ][j]) * cellSizes[j];
-		    p.x = (e1-e0)*t + e0;
-
-		    ++j;
-
-		    e0 = bounds[0][j] + (y + cubeVerticesTable[ e[0]  ][j]) * cellSizes[j];
-		    e1 = bounds[0][j] + (y + cubeVerticesTable[ e[1]  ][j]) * cellSizes[j];
-		    p.y = (e1-e0)*t + e0;
-
-		    ++j;
-
-		    e0 = bounds[0][j] + (z + cubeVerticesTable[ e[0]  ][j]) * cellSizes[j];
-		    e1 = bounds[0][j] + (z + cubeVerticesTable[ e[1]  ][j]) * cellSizes[j];
-		    p.z = (e1-e0)*t + e0;
-
-
-		    // now add the interpolated vertex.
-		    edgeIndices[i] = mesh.vertices.size();
-		    mesh.vertices.push_back( p  );
 
 		}
 
@@ -150,10 +211,10 @@ Mesh MarchingCubes(
 
     printf("vertices: %ld\n", mesh.vertices.size() );
 /*
-    for(const glm::vec3& p : mesh.vertices ) {
-	printf("p: %f, %f, %f\n", p.x, p.y, p.z );
-    }
-    */
+  for(const glm::vec3& p : mesh.vertices ) {
+  printf("p: %f, %f, %f\n", p.x, p.y, p.z );
+  }
+*/
 
     printf("indices: %ld\n", mesh.indices.size() );
 

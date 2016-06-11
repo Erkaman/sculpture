@@ -1,5 +1,5 @@
 # CMake entry point
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 3.1)
 project (sculpt)
 
 find_package(OpenGL REQUIRED)
@@ -9,6 +9,8 @@ add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
 # Compile external dependencies
 add_subdirectory (deps)
+
+set (CMAKE_CXX_STANDARD 11)
 
 
 include_directories(
