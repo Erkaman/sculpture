@@ -30,40 +30,58 @@ GLuint vao;
 
 const char* vertex_shader_text =
     "#version 330\n"
-    "layout(location = 0) in vec3 aPos;"
+    "layout(location = 0) in vec3 aPosition;"
     "layout(location = 1) in vec3 aNormal;"
 
     "uniform mat4 uProject;\n"
     "uniform mat4 uView;\n"
 
-    "out vec3 vPos;"
+    "out vec3 vPosition;"
     "out vec3 vNormal;"
 
     "\n"
     "void main()\n"
     "{\n"
-    "   vPos = aPos; "
+    "   vPosition = aPosition; "
     "   vNormal = aNormal; "
 
-    "   gl_Position = uProject * uView * vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "   gl_Position = uProject * uView * vec4(aPosition, 1.0);\n"
     "}\n";
 
 const char* fragment_shader_text =
     "#version 330\n"
     "out vec4 color;\n"
-    "in vec3 vPos;"
+    "in vec3 vPosition;"
     "in vec3 vNormal;"
+
+    "uniform vec3 uEyePos;"
+
 
     "void main()\n"
     "{\n"
-    "    vec3 diff = vec3(dot(vNormal, normalize(vec3(0.2,0.3,0.6)) ) ); \n"
+
+    "vec3 diffuseColor = vec3(0.42, 0.34, 0.0);"
+    "vec3 ambientLight = vec3(0.87, 0.82, 0.69);"
+    "vec3 lightColor = vec3(0.40, 0.47, 0.0);"
+    "vec3 lightDir = normalize(vec3(-0.69, 1.33, 0.57));"
+    "float specularPower = 12.45;"
+
+    "vec3 n = vNormal;"
+    "vec3 l = normalize(lightDir);"
+    "vec3 v = normalize(uEyePos - vPosition);"
+    "vec3 ambient = ambientLight * diffuseColor;"
+    "vec3 diffuse = diffuseColor * lightColor * dot(n, l) ;"
+    "vec3 specular = vec3(pow(clamp(dot(normalize(l+v),n),0.0,1.0)  , specularPower));"
+
+
+    "    vec3 diff = ambient + diffuse + specular; \n"
 
     "    color = vec4(diff, 1.0); \n"
     "}\n";
 
 /*
-std::vector<glm::vec3> my_map_vertices;
-std::vector<GLuint> map_line_indices;
+  std::vector<glm::vec3> my_map_vertices;
+  std::vector<GLuint> map_line_indices;
 */
 
 
@@ -79,23 +97,26 @@ float cameraTheta = 0.8f;
 float cameraPhi = 0.8 * M_PI/2.0f;
 float cameraR = 3.0;
 
+glm::vec3 cameraPos;
 
 glm::mat4 viewMatrix;
 
 void updateViewMatrix() {
 
-	glm::vec3 up(0.0f, 1.0f, 0.0f);
-	glm::vec3 center(0.0f, 0.0f, 0.0f);
-	glm::vec3 position(
-	    cameraR * sinf(cameraTheta)*sinf(cameraPhi),
-	    cameraR * cosf(cameraPhi),
-	    cameraR * cosf(cameraTheta)*sinf(cameraPhi));
+    glm::vec3 up(0.0f, 1.0f, 0.0f);
+    glm::vec3 center(0.0f, 0.0f, 0.0f);
+    cameraPos = glm::vec3(
+	cameraR * sinf(cameraTheta)*sinf(cameraPhi),
+	cameraR * cosf(cameraPhi),
+	cameraR * cosf(cameraTheta)*sinf(cameraPhi));
 
-	viewMatrix = glm::lookAt(
-	    position,
-	    center,
-	    up
-	    );
+    viewMatrix = glm::lookAt(
+	cameraPos,
+	center,
+	up
+	);
+
+
 
 
 }
@@ -171,10 +192,9 @@ struct Density {
 
 
 
-
 /*
-	v = Union(v, Capsule(x,y,z, glm::vec3(0,-5,0), glm::vec3(0,3,0), 0.3));
-	v = Union(v, Capsule(x,y,z, glm::vec3(-3,3,0), glm::vec3(3,3,0), 1.0) );	v = Union(v, Capsule(x,y,z, glm::vec3(-3,-5,-3), glm::vec3(3,-5,3), 1.0) );
+  v = Union(v, Capsule(x,y,z, glm::vec3(0,-5,0), glm::vec3(0,3,0), 0.3));
+  v = Union(v, Capsule(x,y,z, glm::vec3(-3,3,0), glm::vec3(3,3,0), 1.0) );	v = Union(v, Capsule(x,y,z, glm::vec3(-3,-5,-3), glm::vec3(3,-5,3), 1.0) );
 */
 
 	return v;
@@ -193,39 +213,39 @@ void init_map(void)
     Density d;
 
     mesh = MarchingCubes(d,
-		  100,
-		  -10, +10,
-		  -10, +10,
-		  -10, +10
+			 50,
+			 -10, +10,
+			 -10,  +10,
+			 -10, +10
 	);
 
 
     /*
-    for(size_t i = 0; i < mesh.vertices.size(); ++i) {
-	mesh.normals.push_back( glm::vec3(0.0f, 0.0f, 0.0f) );
-    }
+      for(size_t i = 0; i < mesh.vertices.size(); ++i) {
+      mesh.normals.push_back( glm::vec3(0.0f, 0.0f, 0.0f) );
+      }
 
-    // sum all adjacent face normals for the vertices.
-    for(size_t i = 0; i < mesh.indices.size(); i+=3) {
-	vec3 p0 = mesh.vertices[mesh.indices[i+0]];
-	vec3 p1 = mesh.vertices[mesh.indices[i+1]];
-	vec3 p2 = mesh.vertices[mesh.indices[i+2]];
+      // sum all adjacent face normals for the vertices.
+      for(size_t i = 0; i < mesh.indices.size(); i+=3) {
+      vec3 p0 = mesh.vertices[mesh.indices[i+0]];
+      vec3 p1 = mesh.vertices[mesh.indices[i+1]];
+      vec3 p2 = mesh.vertices[mesh.indices[i+2]];
 
-	vec3 u = p2 - p0;
-	vec3 v = p1 - p0;
+      vec3 u = p2 - p0;
+      vec3 v = p1 - p0;
 
-	vec3 fn = glm::normalize(glm::cross(u,v));
+      vec3 fn = glm::normalize(glm::cross(u,v));
 
 
-	mesh.normals[mesh.indices[i+0]] += fn;
-	mesh.normals[mesh.indices[i+1]] += fn;
-	mesh.normals[mesh.indices[i+2]] += fn;
+      mesh.normals[mesh.indices[i+0]] += fn;
+      mesh.normals[mesh.indices[i+1]] += fn;
+      mesh.normals[mesh.indices[i+2]] += fn;
 
-    }
+      }
 
-    for(size_t i = 0; i < mesh.vertices.size(); ++i) {
-	mesh.normals[i] = glm::normalize(mesh.normals[i]);
-    }
+      for(size_t i = 0; i < mesh.vertices.size(); ++i) {
+      mesh.normals[i] = glm::normalize(mesh.normals[i]);
+      }
 
     */
 
@@ -280,10 +300,10 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset){
 
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods){
     switch(key){
-        case GLFW_KEY_ESCAPE:
-            /* Exit program on Escape */
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
-            break;
+    case GLFW_KEY_ESCAPE:
+	/* Exit program on Escape */
+	glfwSetWindowShouldClose(window, GLFW_TRUE);
+	break;
     }
 }
 
@@ -355,11 +375,11 @@ int main(int argc, char** argv)
 
 
 
-	GL_C(glEnable(GL_CULL_FACE));
-	GL_C(glEnable(GL_DEPTH_TEST));
+    GL_C(glEnable(GL_CULL_FACE));
+    GL_C(glEnable(GL_DEPTH_TEST));
 
-	glFlush();
-	glFinish();
+    glFlush();
+    glFinish();
 
 
     while (!glfwWindowShouldClose(window)) {
@@ -380,6 +400,7 @@ int main(int argc, char** argv)
 
 	shader.SetUniform("uProject", projectionMatrix );
 	shader.SetUniform("uView",viewMatrix );
+	shader.SetUniform("uEyePos",cameraPos );
 
 
 

@@ -144,4 +144,11 @@ public:
 	}
     }
 
+    void SetUniform(const std::string& uniformName,  const glm::vec3& vec) {
+	if (m_uniformLocations.count(uniformName) > 0) {
+	    const GLuint location = m_uniformLocations[uniformName];
+	    GL_C(glUniform3fv(location, 1, glm::value_ptr(vec)));
+	}
+    }
+
 };
