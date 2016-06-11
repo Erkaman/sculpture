@@ -38,22 +38,38 @@ Mesh MarchingCubes(
     int edgeIndices[12];
 
 
+    float* densityValues = new float[resolution*resolution*resolution];
+
+    for(int x = 0; x < (resolution); ++x)
+	for(int y = 0; y < (resolution); ++y)
+	    for(int z = 0; z < (resolution); ++z) {
+
+		densityValues[z+y*resolution+x*resolution*resolution] = density.eval(
+			bounds[0][0] + (x) * cellSizes[0],
+			bounds[0][1] + (y) * cellSizes[1],
+			bounds[0][2] + (z) * cellSizes[2]
+			);
+
+	    }
+
+
     // we iterate through all the cells, and create geometry for them, one by one.
     for(int x = 0; x < (resolution-1); ++x)
 	for(int y = 0; y < (resolution-1); ++y)
 	    for(int z = 0; z < (resolution-1); ++z) {
-
 
 		int cellIndex = 0;
 
 		// compute the values at the cell vertices, and create the cell index.
 		for(int i = 0; i < 8; ++i) {
 
-		    gridCellValues[i] = density.eval(
-			bounds[0][0] + (x + cubeVerticesTable[i][0]) * cellSizes[0],
-			bounds[0][1] + (y + cubeVerticesTable[i][1]) * cellSizes[1],
-			bounds[0][2] + (z + cubeVerticesTable[i][2]) * cellSizes[2]
-			);
+		    gridCellValues[i] = densityValues[
+			(x + cubeVerticesTable[i][0])*resolution*resolution +
+			(y + cubeVerticesTable[i][1])*resolution            +
+			(z + cubeVerticesTable[i][2])
+			];
+
+
 
 		    if( gridCellValues[i] > 0 ) {
 			cellIndex |= ( 1 << i );
@@ -141,6 +157,7 @@ Mesh MarchingCubes(
 
     printf("indices: %ld\n", mesh.indices.size() );
 
+    delete[] densityValues;
 
     return mesh;
 }

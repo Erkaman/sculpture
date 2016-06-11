@@ -142,19 +142,19 @@ struct Density {
 //	v = x*x + y*y + z*z - 1;
 
 
-
+/*
 	for(int i = 1; i < points.size(); ++i) {
 	    	v = Union(v, Capsule(x,y,z, points[i-1] , points[i-0], 0.6));
 
 		}
+*/
 
 
 
-	/*
 	v = Union(v, Capsule(x,y,z, glm::vec3(0,-5,0), glm::vec3(0,3,0), 0.3));
 	v = Union(v, Capsule(x,y,z, glm::vec3(-3,3,0), glm::vec3(3,3,0), 1.0) );
 	v = Union(v, Capsule(x,y,z, glm::vec3(-3,-5,-3), glm::vec3(3,-5,3), 1.0) );
-	*/
+
 
 	return v;
 
