@@ -262,6 +262,7 @@ Mesh MarchingCubes(
 			    p[j] = (e1-e0)*t + e0;
 			}
 
+
 			glm::vec3 n0 = normals[i0];
 			glm::vec3 n1 = normals[i1];
 
