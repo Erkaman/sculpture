@@ -13,6 +13,8 @@
 
 #include "marching_cubes.hpp"
 
+#include "deform.hpp"
+
 
 using std::vector;
 
@@ -76,6 +78,8 @@ const char* fragment_shader_text =
 
     "    vec3 diff = ambient + diffuse + specular; \n"
 //    "    diff = vec3(dot(n,l)); \n"
+//    "    diff = vec3(abs(n)); \n"
+    "    diff = vec3( abs(vPosition) ); \n"
 
     "    color = vec4(diff, 1.0); \n"
     "}\n";
@@ -264,8 +268,8 @@ void ComputeNormals() {
 void CreateUVSphere() {
 
     int radius = 1.0;
-    const int stacks = 50;
-    const int slices = 50;
+    const int stacks = 200;
+    const int slices = 200;
 
     // keeps track of the index of the next vertex that we create.
     int index = 0;
@@ -517,8 +521,12 @@ void InitSphere(void) {
 
     CreateUVSphere();
 
-    printf("vertices: %d\n", mesh.vertices.size() );
-    printf("indices: %d\n", mesh.indices.size() );
+    printf("vertices: %ld\n", mesh.vertices.size() );
+    printf("indices: %ld\n", mesh.indices.size() );
+
+    ComputeNormals();
+
+    Sweep(mesh);
 
     ComputeNormals();
 
@@ -532,7 +540,7 @@ void InitMC(void)
     Density d;
 
     mesh = MarchingCubes(d,
-			30,
+			100,
 			 -10, +10,
 			 -10,  +10,
 			 -10, +10
@@ -687,7 +695,7 @@ int main(int argc, char** argv)
 	int fbWidth, fbHeight;
 	glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
 	GL_C(glViewport(0, 0, fbWidth, fbHeight));
-	GL_C(glClearColor(0.0f, 0.0f, 1.0f, 0.0f));
+	GL_C(glClearColor(0.0f, 0.0f, 0.3f, 0.0f));
         GL_C(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
 	shader.Bind();
@@ -709,7 +717,6 @@ int main(int argc, char** argv)
 	glfwGetCursorPos(window, &curMouseX, &curMouseY);
 
 	const float MOUSE_SENSITIVITY = 0.005;
-
 
 	int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
 	if (state == GLFW_PRESS) {

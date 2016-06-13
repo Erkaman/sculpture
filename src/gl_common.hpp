@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#include "glm/gtx/string_cast.hpp"
+
 typedef unsigned int uint;
 
 #define _DEBUG
