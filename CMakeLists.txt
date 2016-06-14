@@ -47,6 +47,8 @@ add_executable(sculpture
   src/marching_cubes.hpp
   src/marching_cubes_tables.hpp
 
+  src/deform.cpp
+
   deps/glfw-3.2/deps/glad.c
 	)
 

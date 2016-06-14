@@ -299,6 +299,7 @@ Mesh MarchingCubes(
 		    mesh.indices.push_back(i0);
 		    mesh.indices.push_back(i1);
 		    mesh.indices.push_back(i2);
+
 		}
 	    }
 

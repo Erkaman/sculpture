@@ -1,5 +1,8 @@
 #pragma once
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 #include <vector>
 
 #include "glm/gtx/string_cast.hpp"
@@ -8,7 +11,7 @@ typedef unsigned int uint;
 
 #define _DEBUG
 
-void CheckOpenGLError(const char* stmt, const char* fname, int line)
+inline void CheckOpenGLError(const char* stmt, const char* fname, int line)
 {
     GLenum err = glGetError();
     //  const GLubyte* sError = gluErrorString(err);
@@ -30,6 +33,17 @@ void CheckOpenGLError(const char* stmt, const char* fname, int line)
 #else
     #define GL_C(stmt) stmt
 #endif
+
+struct Tri {
+
+public:
+    GLuint i[3];
+
+    Tri(GLuint i0, GLuint i1, GLuint i2):
+	i{i0,i1,i2}{
+
+    }
+};
 
 struct Mesh {
 

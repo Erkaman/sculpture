@@ -78,8 +78,8 @@ const char* fragment_shader_text =
 
     "    vec3 diff = ambient + diffuse + specular; \n"
 //    "    diff = vec3(dot(n,l)); \n"
-//    "    diff = vec3(abs(n)); \n"
-    "    diff = vec3( abs(vPosition) ); \n"
+    "    diff = vec3(abs(n)); \n"
+//    "    diff = vec3( abs(vPosition) ); \n"
 
     "    color = vec4(diff, 1.0); \n"
     "}\n";
@@ -237,33 +237,6 @@ struct Density {
     }
 };
 
-void ComputeNormals() {
-          for(size_t i = 0; i < mesh.vertices.size(); ++i) {
-      mesh.normals.push_back( glm::vec3(0.0f, 0.0f, 0.0f) );
-      }
-
-      // sum all adjacent face normals for the vertices.
-      for(size_t i = 0; i < mesh.indices.size(); i+=3) {
-      vec3 p0 = mesh.vertices[mesh.indices[i+0]];
-      vec3 p1 = mesh.vertices[mesh.indices[i+1]];
-      vec3 p2 = mesh.vertices[mesh.indices[i+2]];
-
-      vec3 u = p2 - p0;
-      vec3 v = p1 - p0;
-
-      vec3 fn = glm::normalize(glm::cross(u,v));
-
-
-      mesh.normals[mesh.indices[i+0]] += fn;
-      mesh.normals[mesh.indices[i+1]] += fn;
-      mesh.normals[mesh.indices[i+2]] += fn;
-
-      }
-
-      for(size_t i = 0; i < mesh.vertices.size(); ++i) {
-      mesh.normals[i] = glm::normalize(mesh.normals[i]);
-      }
-}
 
 void CreateUVSphere() {
 
@@ -524,11 +497,10 @@ void InitSphere(void) {
     printf("vertices: %ld\n", mesh.vertices.size() );
     printf("indices: %ld\n", mesh.indices.size() );
 
-    ComputeNormals();
+//    ComputeNormals();
 
     Sweep(mesh);
 
-    ComputeNormals();
 
 
 }
