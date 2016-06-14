@@ -260,7 +260,7 @@ void CreateUVSphere() {
         float u  = (float)i / stacks;
         float phi = u * M_PI;
 
-        GLuint stackBaseIndex = mesh.indices.size()/2;
+        GLuint stackBaseIndex = mesh.faces.size()/2;
         // loop through the slices.
         for (int j = 0; j < slices; ++j){
 
@@ -299,8 +299,8 @@ void CreateUVSphere() {
                 // add quad face
 
 
-		mesh.indices.emplace_back(i1, i2, i3);
-		mesh.indices.emplace_back(i4, i3, i2);
+		mesh.faces.emplace_back(i1, i2, i3);
+		mesh.faces.emplace_back(i4, i3, i2);
 
 
             }
@@ -334,7 +334,7 @@ void CreateUVSphere() {
         GLuint i2 = (i+0);
         GLuint i3 = (i+1) % slices;
 
-	mesh.indices.emplace_back(i3, i2, i1);
+	mesh.faces.emplace_back(i3, i2, i1);
 
 
 
@@ -342,7 +342,7 @@ void CreateUVSphere() {
         i2 = (bottomIndex-1) - slices +  (i+0);
         i3 = (bottomIndex-1) - slices + ((i+1)%slices);
 
-	mesh.indices.emplace_back(i1, i2, i3);
+	mesh.faces.emplace_back(i1, i2, i3);
 
     }
 
@@ -446,15 +446,15 @@ void AddCubeFace(Mesh& mesh, int i) {
 	    int i3 = i + (N+1) + 1;
 
 
-	    mesh.indices.push_back(base + i0);
-	    mesh.indices.push_back(base + i1);
-	    mesh.indices.push_back(base + i2);
+	    mesh.faces.push_back(base + i0);
+	    mesh.faces.push_back(base + i1);
+	    mesh.faces.push_back(base + i2);
 
-	    	    mesh.indices.push_back(base + i3);
+	    	    mesh.faces.push_back(base + i3);
 
-	    mesh.indices.push_back(base + i2);
+	    mesh.faces.push_back(base + i2);
 
-	    	    mesh.indices.push_back(base + i1);
+	    	    mesh.faces.push_back(base + i1);
 
 	}
     }
@@ -477,7 +477,7 @@ void InitSphere(void) {
     CreateUVSphere();
 
     printf("vertices: %ld\n", mesh.vertices.size() );
-    printf("indices: %ld\n", mesh.indices.size() );
+    printf("faces: %ld\n", mesh.faces.size() );
 
 //    ComputeNormals(mesh);
 
@@ -515,7 +515,7 @@ void InitMC(void)
 void make_mesh(){
     GL_C(glGenBuffers(1, &mesh.indexVbo));
     GL_C(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.indexVbo));
-    GL_C(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)* mesh.indices.size()*3, mesh.indices.data(), GL_STATIC_DRAW));
+    GL_C(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)* mesh.faces.size()*3, mesh.faces.data(), GL_STATIC_DRAW));
 
 
     // create
@@ -620,7 +620,7 @@ int main(int argc, char** argv)
 
     /* Create mesh data */
 //    InitMC();
-    InitSphere();
+  InitSphere();
     make_mesh();
 
 
@@ -662,7 +662,7 @@ int main(int argc, char** argv)
 
 
 
-	GL_C(glDrawElements(GL_TRIANGLES, mesh.indices.size()*3 , GL_UNSIGNED_INT, 0));
+	GL_C(glDrawElements(GL_TRIANGLES, mesh.faces.size()*3 , GL_UNSIGNED_INT, 0));
 
 
 	prevMouseX = curMouseX;

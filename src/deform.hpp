@@ -13,10 +13,10 @@ inline void ComputeNormals(Mesh& mesh) {
       }
 
       // sum all adjacent face normals for the vertices.
-      for(size_t i = 0; i < mesh.indices.size(); i+=1) {
-	  glm::vec3 p0 = mesh.vertices[mesh.indices[i].i[0]];
-	  glm::vec3 p1 = mesh.vertices[mesh.indices[i].i[1]];
-	  glm::vec3 p2 = mesh.vertices[mesh.indices[i].i[2]];
+      for(size_t i = 0; i < mesh.faces.size(); i+=1) {
+	  glm::vec3 p0 = mesh.vertices[mesh.faces[i].i[0]];
+	  glm::vec3 p1 = mesh.vertices[mesh.faces[i].i[1]];
+	  glm::vec3 p2 = mesh.vertices[mesh.faces[i].i[2]];
 
 	  glm::vec3 u = p2 - p0;
 	  glm::vec3 v = p1 - p0;
@@ -24,9 +24,9 @@ inline void ComputeNormals(Mesh& mesh) {
 	  glm::vec3 fn = glm::normalize(glm::cross(u,v));
 
 
-      mesh.normals[mesh.indices[i].i[0]] += fn;
-      mesh.normals[mesh.indices[i].i[1]] += fn;
-      mesh.normals[mesh.indices[i].i[2]] += fn;
+      mesh.normals[mesh.faces[i].i[0]] += fn;
+      mesh.normals[mesh.faces[i].i[1]] += fn;
+      mesh.normals[mesh.faces[i].i[2]] += fn;
 
       }
 

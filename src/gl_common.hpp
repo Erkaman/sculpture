@@ -49,8 +49,7 @@ struct Mesh {
 
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> normals;
-    std::vector<Tri> indices;
-
+    std::vector<Tri> faces;
 
     GLuint indexVbo;
     GLuint vertexVbo;

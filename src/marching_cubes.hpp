@@ -296,7 +296,7 @@ Mesh MarchingCubes(
 		    int i1 = edgeIndices[ tri[i+1] ];
 		    int i2 = edgeIndices[ tri[i+2] ];
 
-		    mesh.indices.emplace_back(i0, i1, i2);
+		    mesh.faces.emplace_back(i0, i1, i2);
 
 
 		}
@@ -313,8 +313,8 @@ Mesh MarchingCubes(
   }
 */
 
-//    printf("indices: %ld\n", mesh.indices.size() );
-    printf("indices: %ld\n", mesh.indices.size() );
+//    printf("faces: %ld\n", mesh.faces.size() );
+    printf("faces: %ld\n", mesh.faces.size() );
 
     delete[] densityValues;
 
