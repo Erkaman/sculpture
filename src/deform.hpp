@@ -31,6 +31,6 @@ inline void ComputeNormals(Mesh& mesh) {
       }
 
       for(size_t i = 0; i < mesh.vertices.size(); ++i) {
-      mesh.normals[i] = glm::normalize(mesh.normals[i]);
+	  mesh.normals[i] = glm::normalize(mesh.normals[i]);
       }
 }

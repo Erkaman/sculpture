@@ -2,7 +2,13 @@
 
 #include "glm/gtc/epsilon.hpp"
 
+
+#include "half_edge_mesh.hpp"
+
+
 const float EPS = 0.0001;
+
+
 
 /*
   Given the unit vector v, find two unit vectos u and w such
@@ -138,8 +144,40 @@ void SweepHelper(Mesh& mesh) {
 
 void Sweep(Mesh& mesh) {
 
-    SweepHelper(mesh);
+//    SweepHelper(mesh);
 
+//    ComputeNormals(mesh);
+
+    printf("original vertices: %ld\n", mesh.vertices.size()  );
+    printf("original faces: %ld\n", mesh.faces.size()  );
+
+//    printf("original mesh\n"  );
+
+//    mesh.Print();
+
+
+    HalfEdgeMesh m(mesh);
+
+
+    /*
+    for(auto it = m.beginFaces(); it != m.endFaces(); ++it) {
+	printf("Face edge count:%d \n", it->NumEdges() );
+    }
+
+    for(auto it = m.beginVertices(); it != m.endVertices(); ++it) {
+	printf("Vertex degree:%d \n", it->Degree() );
+    }
+    */
+
+    Mesh m2 = m.ToMesh();
+/*
+    printf("new vertices: %ld\n", m2.vertices.size()  );
+    printf("new faces: %ld\n\n", m2.faces.size()  );
+*/
+
+//    m2.Print();
+
+    mesh = m2;
     ComputeNormals(mesh);
 
 
@@ -154,21 +192,21 @@ void Sweep(Mesh& mesh) {
 
 
       iterate over all faces:
-           iterate over all edges, and add SORTED edge to stack(use set to make sure we process all edges only once)
+      iterate over all edges, and add SORTED edge to stack(use set to make sure we process all edges only once)
 
       we keep a set of all added triangles.
 
 
       iterate until stack is empty:
-           pop edge e of stack.
-	   if e should be split according to criterion
-	       split it. so compute midpoint m from (a and b) and add to list.
-	       now use midpoint to create four new triangles. use all of a,b,c,d to compute normal of m.
+      pop edge e of stack.
+      if e should be split according to criterion
+      split it. so compute midpoint m from (a and b) and add to list.
+      now use midpoint to create four new triangles. use all of a,b,c,d to compute normal of m.
 
-	       now add all four new edges. BUT WHEN WE SPLIT, ENSURE THAT edgeJacadcenties is properly updated.
+      now add all four new edges. BUT WHEN WE SPLIT, ENSURE THAT edgeJacadcenties is properly updated.
 
-	   else
-	       add both triangles(opposite to e), if necessary.
+      else
+      add both triangles(opposite to e), if necessary.
 
     */
 

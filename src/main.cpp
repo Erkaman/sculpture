@@ -241,8 +241,8 @@ struct Density {
 void CreateUVSphere() {
 
     int radius = 1.0;
-    const int stacks = 100;
-    const int slices = 100;
+    const int stacks = 100; // 100
+    const int slices = 100; // 100
 
     // keeps track of the index of the next vertex that we create.
     int index = 0;

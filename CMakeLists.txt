@@ -49,6 +49,10 @@ add_executable(sculpture
 
   src/deform.cpp
 
+  src/half_edge_mesh.cpp
+  src/half_edge_mesh.hpp
+
+
   deps/glfw-3.2/deps/glad.c
 	)
 

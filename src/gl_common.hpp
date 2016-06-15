@@ -41,8 +41,9 @@ public:
 
     Tri(GLuint i0, GLuint i1, GLuint i2):
 	i{i0,i1,i2}{
-
     }
+
+    Tri() {}
 };
 
 struct Mesh {
@@ -55,5 +56,22 @@ struct Mesh {
     GLuint vertexVbo;
     GLuint normalVbo;
 
+    void Print() {
+
+	for(const glm::vec3& v: vertices ) {
+	    printf("vertex: %s\n",  glm::to_string(v).c_str() );
+	}
+
+	printf("\n");
+	for(const glm::vec3& n: normals ) {
+	    printf("normals: %s\n",  glm::to_string(n).c_str() );
+	}
+
+	printf("\n");
+	for(Tri t: faces ) {
+	    printf("indices: %d, %d, %d\n",  t.i[0], t.i[1], t.i[2] );
+	}
+
+    }
 
 };

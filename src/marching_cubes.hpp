@@ -12,15 +12,11 @@ inline std::pair<int,int> sort(int x, int y) {
     return x <= y ? std::pair<int,int>(x,y) : std::pair<int,int>(y,x);
 }
 
-
-
 struct pair_hash {
     std::size_t operator () (const std::pair<int,int>& p) const {
         int h1 = p.first;
         int h2 = p.second;
 
-        // Mainly for demonstration purposes, i.e. works but is overly simple
-        // In the real world, use sth. like boost.hash_combine
         return h1 ^ h2;
     }
 };
