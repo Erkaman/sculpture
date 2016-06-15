@@ -159,7 +159,7 @@ void Sweep(Mesh& mesh) {
     HalfEdgeMesh m(mesh);
 
 
-    /*
+
     for(auto it = m.beginFaces(); it != m.endFaces(); ++it) {
 	printf("Face edge count:%d \n", it->NumEdges() );
     }
@@ -167,7 +167,7 @@ void Sweep(Mesh& mesh) {
     for(auto it = m.beginVertices(); it != m.endVertices(); ++it) {
 	printf("Vertex degree:%d \n", it->Degree() );
     }
-    */
+
 
     Mesh m2 = m.ToMesh();
 /*

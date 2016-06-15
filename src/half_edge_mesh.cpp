@@ -19,8 +19,8 @@ struct pair_hash {
 
 HalfEdgeMesh::HalfEdgeMesh(const Mesh& mesh) {
 
-    map< pair<GLuint, GLuint>, HalfEdgeIter > edges;
-    map< GLuint, VertexIter > vertices;
+    map< pair<GLuint, GLuint>, HalfEdgeIter > addedHalfEdges;
+    map< GLuint, VertexIter > addedVertices;
 
 
     /*
@@ -30,7 +30,7 @@ HalfEdgeMesh::HalfEdgeMesh(const Mesh& mesh) {
     for(const Tri& tri : mesh.faces) {
 
 	FaceIter face = m_faces.insert(m_faces.end(), Face()  );
-	face->edge = m_halfEdges.end(); // initial value.
+	face->halfEdge = m_halfEdges.end(); // initial value.
 
 //	printf("Iterate tri: %d, %d, %d\n",  tri.i[0], tri.i[1], tri.i[2] );
 
@@ -43,7 +43,7 @@ HalfEdgeMesh::HalfEdgeMesh(const Mesh& mesh) {
 	    HalfEdgeId id = HalfEdgeId(u, v);
 
 	    // sanity check.
-	    if(edges.count(id)>0) {
+	    if(addedHalfEdges.count(id)>0) {
 		printf("SOMETHING IS RONG!!!\n");
 		exit(1);
 	    }
@@ -53,28 +53,28 @@ HalfEdgeMesh::HalfEdgeMesh(const Mesh& mesh) {
 	    HalfEdgeIter halfEdge = m_halfEdges.insert(m_halfEdges.end(), HalfEdge() );
 
 
-	    if(vertices.count(u) == 0) {
+	    if(addedVertices.count(u) == 0) {
 		// create vertex.
 		glm::vec3 p = mesh.vertices[u];
 
 
 
 		VertexIter vertex = m_vertices.insert(m_vertices.end(), Vertex(p) );
-		vertices[u] = vertex;
-		vertex->edge = halfEdge;
+		addedVertices[u] = vertex;
+		vertex->halfEdge = halfEdge;
 	    }
 
-	    edges[id] = halfEdge;
+	    addedHalfEdges[id] = halfEdge;
 	    halfEdge->face = face;
 
 	    if(i == 0) {
 
-		if(face->edge != m_halfEdges.end() ) {
+		if(face->halfEdge != m_halfEdges.end() ) {
 		    printf("face->edge is not null!\n");
 		    exit(1);
 		}
 
-		face->edge = halfEdge;
+		face->halfEdge = halfEdge;
 	    }
 	}
 
@@ -97,26 +97,26 @@ HalfEdgeMesh::HalfEdgeMesh(const Mesh& mesh) {
 	    printf("idNext: %d, %d\n",  idNext.first, idNext.second );
 
 */
-	    if(edges.count(idCur) == 0 || edges.count(idNext) == 0) {
+	    if(addedHalfEdges.count(idCur) == 0 || addedHalfEdges.count(idNext) == 0) {
 		printf("RRRRRONGGGGG!\n");
 		exit(1);
 	    }
 
 
-	    edges[idCur]->next = edges[idNext];
+	    addedHalfEdges[idCur]->next = addedHalfEdges[idNext];
 
 	    // add vertex that half-edge points to.
-	    edges[idCur]->vertex = vertices[idCur.second];
+	    addedHalfEdges[idCur]->vertex = addedVertices[idCur.second];
 
 
 	    HalfEdgeId idCurTwin = HalfEdgeId(
 		idCur.second,
 		idCur.first);
 
-	    if(edges.count(idCurTwin)>0) {
+	    if(addedHalfEdges.count(idCurTwin)>0) {
 
-		edges[idCurTwin]->twin = edges[idCur];
-		edges[idCur    ]->twin = edges[idCurTwin];
+		addedHalfEdges[idCurTwin]->twin = addedHalfEdges[idCur];
+		addedHalfEdges[idCur    ]->twin = addedHalfEdges[idCurTwin];
 
 	    }
 
@@ -134,15 +134,15 @@ HalfEdgeMesh::HalfEdgeMesh(const Mesh& mesh) {
 int Face::NumEdges()const {
     int numEdges = 0;
 
-    HalfEdgeIter edge = this->edge;
-    HalfEdgeIter start = edge;
+    HalfEdgeIter h = this->halfEdge;
+    HalfEdgeIter start = h;
 
     do {
 
-	edge = edge->next;
+	h = h->next;
 	++numEdges;
 
-    } while(edge != start);
+    } while(h != start);
 
     return numEdges;
 }
@@ -150,7 +150,7 @@ int Face::NumEdges()const {
 
 int Vertex::Degree()const {
 
-    HalfEdgeCIter halfEdge = this->edge;
+    HalfEdgeCIter halfEdge = this->halfEdge;
     int degree = 0;
 
     do {
@@ -158,7 +158,7 @@ int Vertex::Degree()const {
 	halfEdge = halfEdge->twin->next;
 	++degree;
 
-    }while(halfEdge != this->edge);
+    }while(halfEdge != this->halfEdge);
 
     return degree;
 }
@@ -178,7 +178,7 @@ Mesh HalfEdgeMesh::ToMesh()const {
 
     for(FaceCIter it = beginFaces(); it != endFaces(); ++it) {
 
-	HalfEdgeIter halfEdge = it->edge;
+	HalfEdgeIter halfEdge = it->halfEdge;
 
 	Tri tri;
 	GLuint i = 0;
@@ -188,7 +188,7 @@ Mesh HalfEdgeMesh::ToMesh()const {
 	    tri.i[i++] = verticesMap[halfEdge->twin->vertex];
 	    halfEdge = halfEdge->next;
 
-	} while(halfEdge != it->edge);
+	} while(halfEdge != it->halfEdge);
 
 	mesh.faces.push_back(tri);
 

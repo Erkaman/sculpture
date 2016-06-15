@@ -23,7 +23,6 @@ typedef std::list<HalfEdge>::const_iterator HalfEdgeCIter;
 typedef std::list<Face>::const_iterator FaceCIter;
 typedef std::list<Vertex>::const_iterator VertexCIter;
 
-
 struct HalfEdge {
     HalfEdgeIter twin;
     HalfEdgeIter next; // the next half-edge around the face.
@@ -37,7 +36,7 @@ struct HalfEdge {
 struct Vertex {
     glm::vec3 p;
 
-    HalfEdgeIter edge; // one of the half-edges emanating from this vertex.
+    HalfEdgeIter halfEdge; // one of the half-edges emanating from this vertex.
 
     Vertex(glm::vec3 p_):p(p_) {}
 
@@ -45,7 +44,7 @@ struct Vertex {
 };
 
 struct Face {
-    HalfEdgeIter edge; // one of the half-edges bordering the face.
+    HalfEdgeIter halfEdge; // one of the half-edges bordering the face.
 
     // compute the number of edges in a face.
     int NumEdges()const;
