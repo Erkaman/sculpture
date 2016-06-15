@@ -14,14 +14,17 @@
 class HalfEdge;
 class Vertex;
 class Face;
+class Edge;
 
 typedef std::list<HalfEdge>::iterator HalfEdgeIter;
 typedef std::list<Face>::iterator FaceIter;
 typedef std::list<Vertex>::iterator VertexIter;
+typedef std::list<Edge>::iterator EdgeIter;
 
 typedef std::list<HalfEdge>::const_iterator HalfEdgeCIter;
 typedef std::list<Face>::const_iterator FaceCIter;
 typedef std::list<Vertex>::const_iterator VertexCIter;
+typedef std::list<Edge>::const_iterator EdgeCIter;
 
 struct HalfEdge {
     HalfEdgeIter twin;
@@ -31,6 +34,11 @@ struct HalfEdge {
 
     FaceIter face; // the face to the left of this half-edge
 
+    EdgeIter edge; // containing edge.
+};
+
+struct Edge {
+    HalfEdgeIter halfEdge; // one of the two half-edges that this edge is split into.
 };
 
 struct Vertex {
@@ -48,7 +56,6 @@ struct Face {
 
     // compute the number of edges in a face.
     int NumEdges()const;
-
 };
 
 
@@ -73,6 +80,7 @@ private:
     std::list<HalfEdge> m_halfEdges;
     std::list<Face> m_faces;
     std::list<Vertex> m_vertices;
+    std::list<Edge> m_edges;
 
 public:
 
@@ -94,6 +102,10 @@ public:
     VertexIter beginVertices() { return m_vertices.begin(); }
     VertexIter   endVertices() { return m_vertices.end(); }
 
+    EdgeIter beginEdges() { return m_edges.begin(); }
+    EdgeIter   endEdges() { return m_edges.end(); }
+
+
     /*
       const begin/end
     */
@@ -105,5 +117,11 @@ public:
 
     VertexCIter beginVertices()const { return m_vertices.cbegin(); }
     VertexCIter   endVertices()const { return m_vertices.cend(); }
+
+    EdgeCIter beginEdges()const { return m_edges.cbegin(); }
+    EdgeCIter   endEdges()const { return m_edges.cend(); }
+
+
+
 
 };

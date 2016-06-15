@@ -6,7 +6,11 @@ using std::pair;
 using std::map;
 
 typedef pair<GLuint,GLuint> HalfEdgeId;
+typedef pair<GLuint,GLuint> EdgeId;
 
+inline EdgeId Sort(GLuint x, GLuint y) {
+    return x <= y ? EdgeId(x,y) : EdgeId(y,x);
+}
 
 struct pair_hash {
     std::size_t operator () (const HalfEdgeId& p) const {
@@ -20,6 +24,7 @@ struct pair_hash {
 HalfEdgeMesh::HalfEdgeMesh(const Mesh& mesh) {
 
     map< pair<GLuint, GLuint>, HalfEdgeIter > addedHalfEdges;
+    map< pair<GLuint, GLuint>, EdgeIter > addedEdges;
     map< GLuint, VertexIter > addedVertices;
 
 
@@ -40,32 +45,46 @@ HalfEdgeMesh::HalfEdgeMesh(const Mesh& mesh) {
 	    GLuint u = tri.i[(i+0)%3];
 	    GLuint v = tri.i[(i+1)%3];
 
-	    HalfEdgeId id = HalfEdgeId(u, v);
+	    HalfEdgeId halfEdgeId = HalfEdgeId(u, v);
+	    EdgeId     edgeId     = Sort(u, v);
 
 	    // sanity check.
-	    if(addedHalfEdges.count(id)>0) {
+	    if(addedHalfEdges.count(halfEdgeId)>0) {
 		printf("SOMETHING IS RONG!!!\n");
 		exit(1);
 	    }
 
 
 
+
 	    HalfEdgeIter halfEdge = m_halfEdges.insert(m_halfEdges.end(), HalfEdge() );
+
+
+	    EdgeIter edge;
+	    if(addedEdges.count(edgeId) == 0) {
+		// create edge on the fly:
+		edge = m_edges.insert(m_edges.end(), Edge());
+		addedEdges[edgeId] = edge;
+		edge->halfEdge = halfEdge;
+	    } else {
+		edge = addedEdges[edgeId];
+	    }
+
+
 
 
 	    if(addedVertices.count(u) == 0) {
 		// create vertex.
 		glm::vec3 p = mesh.vertices[u];
 
-
-
 		VertexIter vertex = m_vertices.insert(m_vertices.end(), Vertex(p) );
 		addedVertices[u] = vertex;
 		vertex->halfEdge = halfEdge;
 	    }
 
-	    addedHalfEdges[id] = halfEdge;
+	    addedHalfEdges[halfEdgeId] = halfEdge;
 	    halfEdge->face = face;
+	    halfEdge->edge = edge;
 
 	    if(i == 0) {
 
@@ -128,6 +147,7 @@ HalfEdgeMesh::HalfEdgeMesh(const Mesh& mesh) {
     printf("Faces: %ld\n", m_faces.size() );
     printf("HalfEdges: %ld\n", m_halfEdges.size() );
     printf("Vertices: %ld\n", m_vertices.size() );
+    printf("Edges: %ld\n", m_edges.size() );
 
 }
 
