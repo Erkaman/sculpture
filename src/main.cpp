@@ -241,8 +241,8 @@ struct Density {
 void CreateUVSphere() {
 
     int radius = 1.0;
-    const int stacks = 10; // 100
-    const int slices = 10; // 100
+    const int stacks = 3; // 100
+    const int slices = 3; // 100
 
     // keeps track of the index of the next vertex that we create.
 
@@ -643,7 +643,7 @@ int main(int argc, char** argv)
 
 
     while (!glfwWindowShouldClose(window)) {
-	GL_C(glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ));
+       	GL_C(glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ));
 
 
 	int fbWidth, fbHeight;

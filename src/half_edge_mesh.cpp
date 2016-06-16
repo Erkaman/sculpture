@@ -353,3 +353,191 @@ void HalfEdgeMesh::Flip(EdgeIter e0) {
     printf("v3 %s\n", v3->ToString().c_str() );
 */
 }
+
+void HalfEdgeMesh::Split(EdgeIter e0) {
+
+    // FIRST WE COLLECT INFO
+
+    // HALF EDGES
+    HalfEdgeIter h0 = e0->halfEdge;
+    HalfEdgeIter h1 = h0->next;
+    HalfEdgeIter h2 = h1->next;
+
+    HalfEdgeIter h3 = h0->twin;
+    HalfEdgeIter h4 = h3->next;
+    HalfEdgeIter h5 = h4->next;
+
+    HalfEdgeIter h6 = h1->twin;
+    HalfEdgeIter h7 = h2->twin;
+    HalfEdgeIter h8 = h4->twin;
+    HalfEdgeIter h9 = h5->twin;
+
+    // VERTICES
+    VertexIter v0 = h3->vertex;
+    VertexIter v1 = h0->vertex;
+    VertexIter v2 = h6->vertex;
+    VertexIter v3 = h8->vertex;
+
+    // EDGES
+    EdgeIter e1 = h2->edge;
+    EdgeIter e2 = h1->edge;
+    EdgeIter e3 = h5->edge;
+    EdgeIter e4 = h4->edge;
+
+    // FACES
+    FaceIter f0 = h0->face;
+    FaceIter f1 = h3->face;
+
+    // ALLOCATE NEW
+
+    // HALF EDGES
+    HalfEdgeIter h10 = NewHalfEdge();
+    HalfEdgeIter h11 = NewHalfEdge();
+    HalfEdgeIter h12 = NewHalfEdge();
+    HalfEdgeIter h13 = NewHalfEdge();
+    HalfEdgeIter h14 = NewHalfEdge();
+    HalfEdgeIter h15 = NewHalfEdge();
+
+    // VERTICES
+    VertexIter v4 = NewVertex();
+    glm::vec3 m = (e0->halfEdge->vertex->p + e0->halfEdge->twin->vertex->p) * 0.5f;
+    v4->p = m;
+
+//    glm::vec3 m = e0->halfEdge->vertex->p;
+
+//    printf("m :%s\n", glm::to_string(m).c_str() );
+
+    // EDGES
+    EdgeIter e5 = NewEdge();
+    EdgeIter e6 = NewEdge();
+    EdgeIter e7 = NewEdge();
+
+    // FACES
+    FaceIter f2 = NewFace();
+    FaceIter f3 = NewFace();
+
+
+    // NOW WE START ASSIGNING
+    h0->next = h11;
+    h0->twin = h3;
+    h0->vertex = v1;
+    h0->edge = e0;
+    h0->face = f0;
+
+    h1->next = h12;
+    h1->twin = h6;
+    h1->vertex = v0;
+    h1->edge = e2;
+    h1->face = f3;
+
+    h2->next = h0;
+    h2->twin = h7;
+    h2->vertex = v2;
+    h2->edge = e1;
+    h2->face = f0;
+
+    h3->next = h4;
+    h3->twin = h0;
+    h3->vertex = v4;
+    h3->edge = e0;
+    h3->face = f1;
+
+    h4->next = h10;
+    h4->twin = h8;
+    h4->vertex = v1;
+    h4->edge = e4;
+    h4->face = f1;
+
+    h5->next = h14;
+    h5->twin = h9;
+    h5->vertex = v3;
+    h5->edge = e3;
+    h5->face = f2;
+
+    h6->next = h6->next;
+    h6->twin = h1;
+    h6->vertex = v2;
+    h6->edge = e2;
+    h6->face = h6->face;
+
+    h7->next = h7->next;
+    h7->twin = h2;
+    h7->vertex = v1;
+    h7->edge = e1;
+    h7->face = h7->face;
+
+    h8->next = h8->next;
+    h8->twin = h4;
+    h8->vertex = v3;
+    h8->edge = e4;
+    h8->face = h8->face;
+
+    h9->next = h9->next;
+    h9->twin = h5;
+    h9->vertex = v0;
+    h9->edge = e3;
+    h9->face = h9->face;
+
+    h10->next = h3;
+    h10->twin = h15;
+    h10->vertex = v3;
+    h10->edge = e6;
+    h10->face = f1;
+
+    h11->next = h2;
+    h11->twin = h12;
+    h11->vertex = v4;
+    h11->edge = e5;
+    h11->face = f0;
+
+    h12->next = h13;
+    h12->twin = h11;
+    h12->vertex = v2;
+    h12->edge = e5;
+    h12->face = f3;
+
+    h13->next = h1;
+    h13->twin = h14;
+    h13->vertex = v4;
+    h13->edge = e7;
+    h13->face = f3;
+
+    h14->next = h15;
+    h14->twin = h13;
+    h14->vertex = v0;
+    h14->edge = e7;
+    h14->face = f2;
+
+    h15->next = h5;
+    h15->twin = h10;
+    h15->vertex = v4;
+    h15->edge = e6;
+    h15->face = f2;
+
+    // VERTICES
+    v0->halfEdge = h1;
+    v1->halfEdge = h0;
+    v2->halfEdge = h2;
+    v3->halfEdge = h5;
+    v4->halfEdge = h3;
+
+    // EDGES
+    e0->halfEdge = h0;
+    e1->halfEdge = h2;
+    e2->halfEdge = h1;
+    e3->halfEdge = h5;
+    e4->halfEdge = h4;
+
+    e5->halfEdge = h11;
+    e6->halfEdge = h10;
+    e7->halfEdge = h13;
+
+
+    // FACES
+    f0->halfEdge = h2;
+    f1->halfEdge = h3;
+    f2->halfEdge = h5;
+    f3->halfEdge = h1;
+
+
+}

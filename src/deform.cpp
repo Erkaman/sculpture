@@ -176,26 +176,25 @@ void Sweep(Mesh& mesh) {
 
     auto it = m.beginEdges();
 
-    for(int i = 0; i < 30; ++i) {
-
-	++it;;
-
+    for(int i = 0; i < 1; ++i) {
+	++it;
     }
+    m.Split(it);
+
+/*
+    it = m.beginEdges();
+    for(int i = 0; i < 3; ++i) {
+	++it;
+    }
+    m.Split(it);
+*/
 
 
+    //m.Flip(it);
 
 
-    glm::vec3 a;
-    glm::vec3 b;
-
-    it->GetEdgePoints(a,b);
-
-    printf("Edge: %s § %s \n", glm::to_string(a).c_str(), glm::to_string(b).c_str() );
-
-    //    m.Split(it);
-      m.Flip(it);
-
-
+//    printf("modified vertices: %ld\n", m.vertices.size()  );
+//    printf("modified faces: %ld\n", m.faces.size()  );
 
 
     for(auto it = m.beginFaces(); it != m.endFaces(); ++it) {

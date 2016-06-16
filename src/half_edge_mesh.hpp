@@ -112,7 +112,7 @@ public:
 
 
     void Flip(EdgeIter h0);
-
+    void Split(EdgeIter e0);
 
 
     /*
