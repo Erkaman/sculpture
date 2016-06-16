@@ -30,7 +30,7 @@ struct HalfEdge {
     HalfEdgeIter twin;
     HalfEdgeIter next; // the next half-edge around the face.
 
-    VertexIter vertex; // the vertex that this half-edge points to..
+    VertexIter vertex; // the vertex at the root of the half-edge..
 
     FaceIter face; // the face to the left of this half-edge
 
@@ -39,6 +39,8 @@ struct HalfEdge {
 
 struct Edge {
     HalfEdgeIter halfEdge; // one of the two half-edges that this edge is split into.
+
+    void GetEdgePoints(glm::vec3& a, glm::vec3& b);
 };
 
 struct Vertex {
@@ -46,9 +48,9 @@ struct Vertex {
 
     HalfEdgeIter halfEdge; // one of the half-edges emanating from this vertex.
 
-    Vertex(glm::vec3 p_):p(p_) {}
-
     int Degree()const;
+
+    std::string ToString() { return glm::to_string(p);  }
 };
 
 struct Face {
@@ -82,12 +84,35 @@ private:
     std::list<Vertex> m_vertices;
     std::list<Edge> m_edges;
 
+    HalfEdgeIter NewHalfEdge() {
+	return m_halfEdges.insert(m_halfEdges.end(), HalfEdge() );
+    }
+
+    FaceIter NewFace() {
+	return m_faces.insert(m_faces.end(), Face()  );
+    }
+
+    EdgeIter NewEdge() {
+	return m_edges.insert(m_edges.end(), Edge());
+    }
+
+    VertexIter NewVertex() {
+	return m_vertices.insert(m_vertices.end(), Vertex() );
+    }
+
+
+
+
 public:
 
     HalfEdgeMesh(const Mesh& mesh);
 
 
     Mesh ToMesh()const;
+
+
+    void Flip(EdgeIter h0);
+
 
 
     /*

@@ -34,7 +34,7 @@ HalfEdgeMesh::HalfEdgeMesh(const Mesh& mesh) {
      */
     for(const Tri& tri : mesh.faces) {
 
-	FaceIter face = m_faces.insert(m_faces.end(), Face()  );
+	FaceIter face = NewFace();
 	face->halfEdge = m_halfEdges.end(); // initial value.
 
 //	printf("Iterate tri: %d, %d, %d\n",  tri.i[0], tri.i[1], tri.i[2] );
@@ -57,13 +57,14 @@ HalfEdgeMesh::HalfEdgeMesh(const Mesh& mesh) {
 
 
 
-	    HalfEdgeIter halfEdge = m_halfEdges.insert(m_halfEdges.end(), HalfEdge() );
+	    HalfEdgeIter halfEdge =
+		NewHalfEdge();
 
 
 	    EdgeIter edge;
 	    if(addedEdges.count(edgeId) == 0) {
 		// create edge on the fly:
-		edge = m_edges.insert(m_edges.end(), Edge());
+		edge = NewEdge();
 		addedEdges[edgeId] = edge;
 		edge->halfEdge = halfEdge;
 	    } else {
@@ -77,7 +78,9 @@ HalfEdgeMesh::HalfEdgeMesh(const Mesh& mesh) {
 		// create vertex.
 		glm::vec3 p = mesh.vertices[u];
 
-		VertexIter vertex = m_vertices.insert(m_vertices.end(), Vertex(p) );
+		VertexIter vertex = NewVertex();
+		vertex->p = p;
+
 		addedVertices[u] = vertex;
 		vertex->halfEdge = halfEdge;
 	    }
@@ -124,8 +127,8 @@ HalfEdgeMesh::HalfEdgeMesh(const Mesh& mesh) {
 
 	    addedHalfEdges[idCur]->next = addedHalfEdges[idNext];
 
-	    // add vertex that half-edge points to.
-	    addedHalfEdges[idCur]->vertex = addedVertices[idCur.second];
+	    // add vertex located at the root of the half-edge
+	    addedHalfEdges[idCur]->vertex = addedVertices[idCur.first];
 
 
 	    HalfEdgeId idCurTwin = HalfEdgeId(
@@ -205,7 +208,7 @@ Mesh HalfEdgeMesh::ToMesh()const {
 
 	do {
 
-	    tri.i[i++] = verticesMap[halfEdge->twin->vertex];
+	    tri.i[i++] = verticesMap[halfEdge->vertex];
 	    halfEdge = halfEdge->next;
 
 	} while(halfEdge != it->halfEdge);
@@ -215,4 +218,138 @@ Mesh HalfEdgeMesh::ToMesh()const {
     }
 
     return mesh;
+}
+
+void Edge::GetEdgePoints(glm::vec3& a, glm::vec3& b) {
+    a = halfEdge->vertex->p;
+    b = halfEdge->twin->vertex->p;
+}
+
+
+void HalfEdgeMesh::Flip(EdgeIter e0) {
+
+    // HALF EDGES
+    HalfEdgeIter h0 = e0->halfEdge;
+    HalfEdgeIter h1 = h0->next;
+    HalfEdgeIter h2 = h1->next;
+
+    HalfEdgeIter h3 = h0->twin;
+    HalfEdgeIter h4 = h3->next;
+    HalfEdgeIter h5 = h4->next;
+
+    HalfEdgeIter h6 = h1->twin;
+    HalfEdgeIter h7 = h2->twin;
+    HalfEdgeIter h8 = h4->twin;
+    HalfEdgeIter h9 = h5->twin;
+
+    // VERTICES
+    VertexIter v0 = h3->vertex;
+    VertexIter v1 = h0->vertex;
+    VertexIter v2 = h6->vertex;
+    VertexIter v3 = h8->vertex;
+
+    // EDGES
+    EdgeIter e1 = h2->edge;
+    EdgeIter e2 = h1->edge;
+    EdgeIter e3 = h5->edge;
+    EdgeIter e4 = h4->edge;
+
+    // FACES
+    FaceIter f0 = h0->face;
+    FaceIter f1 = h3->face;
+
+
+    // Update HALF-EDGES
+
+    h0->next = h1;
+    h0->twin = h3;
+    h0->vertex = v2;
+    h0->edge = e0;
+    h0->face = f0;
+
+    h1->next = h2;
+    h1->twin = h9;
+    h1->vertex = v3;
+    h1->edge = e3;
+    h1->face = f0;
+
+    h2->next = h0;
+    h2->twin = h6;
+    h2->vertex = v0;
+    h2->edge = e2;
+    h2->face = f0;
+
+    h3->next = h4;
+    h3->twin = h0;
+    h3->vertex = v3;
+    h3->edge = e0;
+    h3->face = f1;
+
+    h4->next = h5;
+    h4->twin = h7;
+    h4->vertex = v2;
+    h4->edge = e1;
+    h4->face = f1;
+
+    h5->next = h3;
+    h5->twin = h8;
+    h5->vertex = v1;
+    h5->edge = e4;
+    h5->face = f1;
+
+
+    h6->next = h6->next;
+    h6->twin = h2;
+    h6->vertex = v2;
+    h6->edge = e2;
+    h6->face = h6->face;
+
+
+    // now do outer half-edges.
+    h7->next = h7->next;
+    h7->twin = h4;
+    h7->vertex = v1;
+    h7->edge = e1;
+    h7->face = h7->face;
+
+
+    h8->next = h8->next;
+    h8->twin = h5;
+    h8->vertex = v3;
+    h8->edge = e4;
+    h8->face = h8->face;
+
+    h9->next = h9->next;
+    h9->twin = h1;
+    h9->vertex = v0;
+    h9->edge = e3;
+    h9->face = h9->face;
+
+    // VERTICES.
+    v0->halfEdge = h2;
+    v1->halfEdge = h5;
+    v2->halfEdge = h4;
+    v3->halfEdge = h1;
+
+    // EDGES
+    e0->halfEdge = h3;
+    e1->halfEdge = h4;
+    e2->halfEdge = h2;
+    e3->halfEdge = h1;
+    e4->halfEdge = h5;
+
+    // FACES
+
+    f0->halfEdge = h0;
+    f1->halfEdge = h3;
+
+
+
+
+    /*
+    printf("v0 %s\n", v0->ToString().c_str() );
+    printf("v1 %s\n", v1->ToString().c_str() );
+    printf("v2 %s\n", v2->ToString().c_str() );
+    printf("v3 %s\n", v3->ToString().c_str() );
+*/
 }

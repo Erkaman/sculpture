@@ -160,6 +160,44 @@ void Sweep(Mesh& mesh) {
 
 
 
+
+    /*
+    for(auto it = m.beginEdges(); it != m.endEdges(); ++it) {
+
+	glm::vec3 a;
+	glm::vec3 b;
+
+	it->GetEdgePoints(a,b);
+
+
+	printf("Edge: %s § %s \n", glm::to_string(a).c_str(), glm::to_string(b).c_str() );
+    }
+*/
+
+    auto it = m.beginEdges();
+
+    for(int i = 0; i < 30; ++i) {
+
+	++it;;
+
+    }
+
+
+
+
+    glm::vec3 a;
+    glm::vec3 b;
+
+    it->GetEdgePoints(a,b);
+
+    printf("Edge: %s § %s \n", glm::to_string(a).c_str(), glm::to_string(b).c_str() );
+
+    //    m.Split(it);
+      m.Flip(it);
+
+
+
+
     for(auto it = m.beginFaces(); it != m.endFaces(); ++it) {
 	printf("Face edge count:%d \n", it->NumEdges() );
     }
@@ -167,6 +205,8 @@ void Sweep(Mesh& mesh) {
     for(auto it = m.beginVertices(); it != m.endVertices(); ++it) {
 	printf("Vertex degree:%d \n", it->Degree() );
     }
+
+
 
 
     Mesh m2 = m.ToMesh();
