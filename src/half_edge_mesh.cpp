@@ -568,9 +568,9 @@ VertexIter HalfEdgeMesh::Collapse(EdgeIter e8) {
     HalfEdgeIter h22 = h24->next;
 
     // f8
-    HalfEdgeIter h31 = h24->twin;
-    HalfEdgeIter h32 = h31->next;
-    HalfEdgeIter h30 = h32->next;
+//    HalfEdgeIter h31 = h24->twin;
+    HalfEdgeIter h32 = h24->twin->next;
+//    HalfEdgeIter h30 = h32->next;
 
     // f9
     HalfEdgeIter h35 = h28->twin;
@@ -618,7 +618,7 @@ VertexIter HalfEdgeMesh::Collapse(EdgeIter e8) {
 //    VertexIter v3 = h1->vertex;
     VertexIter v4 = h18->vertex;
     VertexIter v5 = h24->vertex;
-    VertexIter v6 = h30->vertex;
+//    VertexIter v6 = h30->vertex;
 
 //    VertexIter v7 = h4->vertex;
     VertexIter v8 = h12->vertex;
@@ -783,7 +783,7 @@ VertexIter HalfEdgeMesh::Collapse(EdgeIter e8) {
     h23->face = f7;
 
     h24->next = h22;
-    h24->twin = h31;
+//    h24->twin = h31;
     h24->vertex = v4;
     h24->edge = e14;
     h24->face = f7;
@@ -824,14 +824,14 @@ VertexIter HalfEdgeMesh::Collapse(EdgeIter e8) {
     h30->vertex = v6;
     h30->edge = e17;
     h30->face = f8;
-*/
+
     h31->next = h32;
     h31->twin = h24;
     h31->vertex = v2;
     h31->edge = e14;
     h31->face = f8;
-
-    h32->next = h30;
+*/
+//    h32->next = h30;
 //    h32->twin = h34;
     h32->vertex = v4;
     h32->edge = e15;
@@ -874,7 +874,7 @@ VertexIter HalfEdgeMesh::Collapse(EdgeIter e8) {
 //    v3->halfEdge = h1;
     v4->halfEdge = h10;
     // v5 will be removed
-    v6->halfEdge = h30;
+//    v6->halfEdge = h30;
 //    v7->halfEdge = h4;
 //    v8->halfEdge = h27;
 //    v9->halfEdge = h36;
@@ -928,6 +928,7 @@ VertexIter HalfEdgeMesh::Collapse(EdgeIter e8) {
     RemoveHalfEdge(h19);
     RemoveHalfEdge(h20);
     RemoveHalfEdge(h21);
+
 
     // return the vertex that the edge was collapsed into:
     return v4;
