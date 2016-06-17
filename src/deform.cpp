@@ -174,13 +174,37 @@ void Sweep(Mesh& mesh) {
     }
 */
 
+    printf("\n");
+
+    printf("Original vertex size\n");
+    printf("Num Faces: %ld\n", m.NumFaces() );
+    printf("Num Vertices: %ld\n", m.NumVertices() );
+    printf("Num Half Edges: %ld\n", m.NumHalfEdges() );
+    printf("Num Edges: %ld\n", m.NumEdges() );
+    printf("\n");
+
     auto it = m.beginEdges();
 
-    for(int i = 0; i < 1; ++i) {
+    for(int i = 0; i < 80; ++i) { // if 20, it hangs. but 50 works
 	++it;
     }
-    m.Split(it);
+//    m.Flip(it);
+//    m.Split(it);
 
+    VertexIter v  = m.Collapse(it);
+//        m.Collapse(v->halfEdge->edge);
+
+
+
+    printf("Modified vertex size\n");
+    printf("Num Faces: %ld\n", m.NumFaces() );
+    printf("Num Vertices: %ld\n", m.NumVertices() );
+    printf("Num Half Edges: %ld\n", m.NumHalfEdges() );
+    printf("Num Edges: %ld\n", m.NumEdges() );
+    printf("\n");
+
+
+    printf("COLLAPSED\n");
 /*
     it = m.beginEdges();
     for(int i = 0; i < 3; ++i) {
@@ -197,6 +221,7 @@ void Sweep(Mesh& mesh) {
 //    printf("modified faces: %ld\n", m.faces.size()  );
 
 
+    /*
     for(auto it = m.beginFaces(); it != m.endFaces(); ++it) {
 	printf("Face edge count:%d \n", it->NumEdges() );
     }
@@ -204,11 +229,15 @@ void Sweep(Mesh& mesh) {
     for(auto it = m.beginVertices(); it != m.endVertices(); ++it) {
 	printf("Vertex degree:%d \n", it->Degree() );
     }
+    */
 
 
 
-
+    printf("CONVERT TO MESH:\n");
     Mesh m2 = m.ToMesh();
+    printf("MADE TO MESH\n");
+
+
 /*
     printf("new vertices: %ld\n", m2.vertices.size()  );
     printf("new faces: %ld\n\n", m2.faces.size()  );

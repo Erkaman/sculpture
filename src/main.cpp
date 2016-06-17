@@ -98,9 +98,9 @@ float cameraPhi = 0.8 * M_PI/2.0f;
 float cameraR = 3.0;
 */
 
-float cameraYaw = 0.0f;
-float cameraPitch = 0.0f;
-float cameraZoom = 10.0;
+float cameraYaw = 4.2f;
+float cameraPitch = 0.5f;
+float cameraZoom = 3.0;
 
 glm::vec3 cameraPos;
 
@@ -241,8 +241,8 @@ struct Density {
 void CreateUVSphere() {
 
     int radius = 1.0;
-    const int stacks = 3; // 100
-    const int slices = 3; // 100
+    const int stacks = 10; // 100
+    const int slices = 10; // 100
 
     // keeps track of the index of the next vertex that we create.
 

@@ -100,8 +100,10 @@ private:
 	return m_vertices.insert(m_vertices.end(), Vertex() );
     }
 
-
-
+    void RemoveHalfEdge ( HalfEdgeIter halfEdge ) {  m_halfEdges.erase( halfEdge ); }
+    void RemoveVertex   (   VertexIter vertex ) {   m_vertices.erase(vertex); }
+    void RemoveEdge     (     EdgeIter edge ) {      m_edges.erase(edge); }
+    void RemoveFace     (     FaceIter face ) {      m_faces.erase(face); }
 
 public:
 
@@ -112,7 +114,11 @@ public:
 
 
     void Flip(EdgeIter h0);
+
+
     void Split(EdgeIter e0);
+
+    VertexIter Collapse(EdgeIter e8);
 
 
     /*
@@ -146,6 +152,10 @@ public:
     EdgeCIter beginEdges()const { return m_edges.cbegin(); }
     EdgeCIter   endEdges()const { return m_edges.cend(); }
 
+    size_t NumHalfEdges()const { return m_halfEdges.size(); }
+    size_t NumFaces()const { return m_faces.size(); }
+    size_t NumVertices()const { return m_vertices.size(); }
+    size_t NumEdges()const { return m_edges.size(); }
 
 
 
