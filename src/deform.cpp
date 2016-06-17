@@ -193,6 +193,7 @@ void Sweep(Mesh& mesh) {
 
     VertexIter v  = m.Collapse(it);
 //        m.Collapse(v->halfEdge->edge);
+//        m.Split(v->halfEdge->edge);
 
 
 

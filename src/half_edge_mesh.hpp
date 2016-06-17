@@ -43,6 +43,7 @@ struct Edge {
     void GetEdgePoints(glm::vec3& a, glm::vec3& b);
 };
 
+
 struct Vertex {
     glm::vec3 p;
 
