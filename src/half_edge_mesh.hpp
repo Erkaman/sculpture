@@ -117,7 +117,7 @@ public:
     void Flip(EdgeIter h0);
 
 
-    void Split(EdgeIter e0);
+    VertexIter Split(EdgeIter e0);
 
     VertexIter Collapse(EdgeIter e8);
 

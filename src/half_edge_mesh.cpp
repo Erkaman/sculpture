@@ -179,7 +179,6 @@ int Vertex::Degree()const {
 
     do {
 
-	printf("p: %s\n", glm::to_string(halfEdge->twin->vertex->p).c_str() );
 	halfEdge = halfEdge->twin->next;
 	++degree;
 
@@ -356,7 +355,7 @@ void HalfEdgeMesh::Flip(EdgeIter e0) {
 */
 }
 
-void HalfEdgeMesh::Split(EdgeIter e0) {
+VertexIter HalfEdgeMesh::Split(EdgeIter e0) {
 
     // FIRST WE COLLECT INFO
 
@@ -542,6 +541,7 @@ void HalfEdgeMesh::Split(EdgeIter e0) {
     f3->halfEdge = h1;
 
 
+    return v4;
 }
 
 VertexIter HalfEdgeMesh::Collapse(EdgeIter e8) {

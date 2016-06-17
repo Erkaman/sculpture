@@ -185,14 +185,16 @@ void Sweep(Mesh& mesh) {
 
     auto it = m.beginEdges();
 
-    for(int i = 0; i < 20; ++i) { // if 20, it hangs. but 50 works
+    for(int i = 0; i < 50; ++i) { // if 20, it hangs. but 50 works
 	++it;
     }
 //    m.Flip(it);
-//    m.Split(it);
+//    VertexIter v = m.Split(it);
+//    m.Split(v->halfEdge->edge);
+
 
     VertexIter v  = m.Collapse(it);
-    //      v = m.Collapse(v->halfEdge->edge);
+    v = m.Collapse(v->halfEdge->edge);
 //        m.Split(v->halfEdge->edge);
 
 //        v = m.Collapse(v->halfEdge->edge);
@@ -224,7 +226,7 @@ void Sweep(Mesh& mesh) {
 //    printf("modified faces: %ld\n", m.faces.size()  );
 
 
-    /*
+
     for(auto it = m.beginFaces(); it != m.endFaces(); ++it) {
 	printf("Face edge count:%d \n", it->NumEdges() );
     }
@@ -232,7 +234,7 @@ void Sweep(Mesh& mesh) {
     for(auto it = m.beginVertices(); it != m.endVertices(); ++it) {
 	printf("Vertex degree:%d \n", it->Degree() );
     }
-    */
+
 
 
 
