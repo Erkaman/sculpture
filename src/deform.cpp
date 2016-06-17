@@ -185,15 +185,17 @@ void Sweep(Mesh& mesh) {
 
     auto it = m.beginEdges();
 
-    for(int i = 0; i < 80; ++i) { // if 20, it hangs. but 50 works
+    for(int i = 0; i < 20; ++i) { // if 20, it hangs. but 50 works
 	++it;
     }
 //    m.Flip(it);
 //    m.Split(it);
 
     VertexIter v  = m.Collapse(it);
-//        m.Collapse(v->halfEdge->edge);
+    //      v = m.Collapse(v->halfEdge->edge);
 //        m.Split(v->halfEdge->edge);
+
+//        v = m.Collapse(v->halfEdge->edge);
 
 
 

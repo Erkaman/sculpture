@@ -1,9 +1,11 @@
 #include "half_edge_mesh.hpp"
 
 #include <map>
+#include <stack>
 
 using std::pair;
 using std::map;
+using std::stack;
 
 typedef pair<GLuint,GLuint> HalfEdgeId;
 typedef pair<GLuint,GLuint> EdgeId;
@@ -630,15 +632,37 @@ VertexIter HalfEdgeMesh::Collapse(EdgeIter e8) {
     h23->vertex = v1;
     h23->edge = e7;
 
+    stack<HalfEdgeIter> outgoings;
+
+    HalfEdgeIter it = v5->halfEdge;
+
+
+    do {
+
+	if(it != h16 && it != h26) {
+	    it->vertex = v4;
+	}
+	it = it->twin->next;
+
+    } while(it != v5->halfEdge );
+
+
+
+
+/*
+    // out going.
     h24->vertex = v4;
+    // outgoing
+    h32->vertex = v4;
+    // outgoing
+    h35->vertex = v4;
+    */
+
 
     h26->twin = h12;
     h26->vertex = v4;
     h26->edge = e9;
 
-    h32->vertex = v4;
-
-    h35->vertex = v4;
 
     v1->halfEdge = h23;
     v4->halfEdge = h10;
